@@ -1,0 +1,28 @@
+rules:
+  - id: string-equals-without-case-insensitivity
+    patterns:
+      - pattern: $X == "$Y"
+      - pattern-not: $X == "__main__"
+      - pattern-not: $X == "POST"
+      - pattern-not: $X == "GET"
+      - pattern-not: ....lower() == ...
+      - pattern-not: ....upper() == ...
+      - pattern-not: ....casefold() == ...
+      - pattern-not: $X == ""
+    message: |
+      Semgrep found a string comparison that appears to be case sensitive.  Generally str(x).lower() == would be best.
+    languages: [python]
+    severity: WARNING
+    fix: str($X).lower() == "$Y".lower()
+  - id: string-equals-without-case-insensitivity-2
+    patterns:
+      - pattern: $X != "$Y"
+      - pattern-not: ....lower() != ...
+      - pattern-not: ....upper() != ...
+      - pattern-not: ....casefold() != ...
+      - pattern-not: $X != ""
+    message: |
+      Semgrep found a string comparison that appears to be case sensitive.  Generally str(x).lower() == would be best.
+    languages: [python]
+    severity: WARNING
+    fix: str($X).lower() != "$Y".lower()

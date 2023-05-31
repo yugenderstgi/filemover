@@ -1,0 +1,13 @@
+rules:
+  - id: not-variable-is
+    pattern-either:
+      - pattern: not $X is True
+      - pattern: not $X is False
+      - pattern: not $X is None
+    message: |
+      Semgrep found a not $X is True/False/None which should be coded as $X is not True/False/None
+    languages: [python]
+    severity: ERROR
+    paths:
+      include:
+        - "*.py"

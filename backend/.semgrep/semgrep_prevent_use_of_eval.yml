@@ -1,0 +1,13 @@
+rules:
+- id: Prevent use of eval(...)
+  message: If trying to convert some sort of string to a python datatype, use use import ast; ast.literal_eval(...)
+  languages: [python]
+  severity: ERROR
+  patterns:
+    - pattern: $A = eval($B)
+
+    - pattern-not: $A = ast.literal_eval($B)
+
+  paths:
+    include:
+      - "*.py"

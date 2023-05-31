@@ -1,0 +1,24 @@
+rules:
+  - id: unknown
+    message: Semgrep - do not allow default parameters to be mutable objects
+    languages: [python]
+    severity: ERROR
+    pattern-either:
+      - pattern: |
+          def $FUNC(..., $ARG=[...], ...):
+              ...
+      - pattern: |
+          def $FUNC(..., $ARG={...}, ...):
+              ...
+      - pattern: |
+          def $FUNC(..., $ARG=dict(...), ...):
+              ...
+      - pattern: |
+          def $FUNC(..., $ARG=list(...), ...):
+              ...
+      - pattern: |
+          def $FUNC(..., $ARG=set(...), ...):
+              ...
+    paths:
+      include:
+        - "*.py"

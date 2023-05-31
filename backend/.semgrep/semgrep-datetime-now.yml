@@ -1,0 +1,12 @@
+rules:
+  - id: datetime-now
+    patterns:
+      - pattern-either:
+          - pattern-regex: datetime.now
+          - pattern-regex: datetime.utcnow
+    message: Do not use datetime.now() or datetime.utcnow().  Use timezone.now() instead
+    languages: [python]
+    severity: ERROR
+    paths:
+      exclude:
+        - "**/migrations/"

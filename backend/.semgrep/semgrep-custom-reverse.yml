@@ -1,0 +1,9 @@
+rules:
+  - id: custom-reverse
+    patterns:
+      - pattern: reverse(...)
+      - pattern-not: custom_reverse(...)
+      - pattern-not: reverse(..., urlconf=...)
+    message: Django's built-in reverse was found in the code. Due to the project's multi-tenant setup, use custom_reverse or explicitly pass in a urlconf instead
+    languages: [python]
+    severity: WARNING

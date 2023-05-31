@@ -1,0 +1,13 @@
+rules:
+  - id: found-requirement-without-version
+    message: Semgrep found a requirement that has no version specified
+    languages: [generic]
+    patterns:
+      - pattern-not-regex: .*==.*
+      - pattern-not-regex: .*#.*
+      - pattern: $X
+
+    severity: ERROR
+    paths:
+      include:
+        - "requirements/*.txt"

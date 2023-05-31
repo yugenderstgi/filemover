@@ -1,0 +1,10 @@
+rules:
+- id: code-incomplete
+  patterns:
+    - pattern-either:
+      - pattern-regex: FIXME
+      - pattern-regex: TODO
+  message: |
+      A FIXME or TODO comment exists in the code.  Should not go to production like this
+  languages: [python]
+  severity: WARNING

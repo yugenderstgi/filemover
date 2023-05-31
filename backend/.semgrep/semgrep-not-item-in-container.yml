@@ -1,0 +1,11 @@
+rules:
+  - id: not-item-in-container
+    patterns:
+      - pattern: not $X in $Y
+    message: |
+      Semgrep found a not $X in $Y which should be coded as $X not in $Y
+    languages: [python]
+    severity: ERROR
+    paths:
+      include:
+        - "*.py"

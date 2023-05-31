@@ -1,0 +1,36 @@
+name: Black
+
+on:
+  pull_request:
+    branches: ["*"]
+
+jobs:
+  black:
+    runs-on: ubuntu-latest
+    if: (github.actor != 'dependabot[bot]')
+    env:
+      LC_GH_TOKEN: ${{ secrets.LC_GH_TOKEN }}
+    container:
+      image: python:3.10
+
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v3
+      - run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
+
+      - name: Update Git Diff Rename Limit
+        run: git config diff.renameLimit 16266
+
+      - name: Get changed files
+        id: changed-files
+        uses: tj-actions/changed-files@v35.4.1
+        with:
+          files: |
+            **/*.py
+
+      - name: Install black
+        run: pip install black==23.1.0
+
+      - name: Run black
+        if: steps.changed-files.outputs.any_changed == 'true'
+        run: python -m black --check --diff --verbose ${{ steps.changed-files.outputs.all_changed_files }}

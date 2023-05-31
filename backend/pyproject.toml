@@ -1,0 +1,72 @@
+[tool.black]
+line-length = 120
+force-exclude = """
+/(
+  | migrations
+  | venv
+)/
+"""
+
+[tool.isort]
+profile = "black"
+atomic = true
+
+
+
+[tool.vulture]
+exclude = ["migrations/"]
+min_confidence = 70
+paths = ["los", "tests"]
+sort_by_size = true
+
+[tool.interrogate]
+ignore-init-method = true
+ignore-init-module = true
+ignore-magic = true
+ignore-semiprivate = false
+ignore-private = false
+ignore-property-decorators = false
+ignore-module = true
+ignore-nested-functions = false
+ignore-nested-classes = true
+ignore-setters = false
+fail-under = 7
+exclude = ["docs/", "*/migrations/", "tests/", "test_*", "scripts/"]
+ignore-regex = []
+verbose = 2
+quiet = false
+whitelist-regex = []
+color = true
+omit-covered-files = true
+
+[tool.poetry]
+name = "lc-filemover"
+version = "0.1.0"
+description = ""
+authors = ["yugenderstgi <yrao@thesummitgrp.com>"]
+readme = "README.md"
+packages = [{include = "lc_filemover"}]
+
+[tool.poetry.dependencies]
+python = ">=3.8.1,<4.0"
+django = "^3.2.15"
+djangorestframework = "^3.12.4 "
+xmltodict = "^0.13.0"
+psycopg2 = "^2.9.1"
+
+[tool.poetry.dev-dependencies]
+pytest = "^7.3"
+coverage = "7.2.3"
+django-coverage-plugin = "3.0.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+
+[tool.pytest.ini_options]
+testpaths = [""]
+addopts = "-v --durations=5 --durations-min=1.0 -x --capture=no --disable-pytest-warnings"
+norecursedirs = ["venv/*", ".git", "node_modules", "los"]
+python_files = ["tests.py", "test_*.py"]
+env = ["SENTRY_DSN = "]

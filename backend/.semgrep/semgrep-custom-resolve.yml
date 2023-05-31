@@ -1,0 +1,9 @@
+rules:
+  - id: custom-resolve
+    patterns:
+      - pattern: resolve(...)
+      - pattern-not: custom_resolve(...)
+      - pattern-not: resolve(..., urlconf=...)
+    message: Django's built-in resolve was found in the code. Due to the project's multi-tenant setup, use custom_reverse or explictly pass in a url conf instead
+    languages: [python]
+    severity: ERROR

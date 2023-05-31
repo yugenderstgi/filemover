@@ -1,0 +1,36 @@
+name: Flake8
+
+on:
+  pull_request:
+    branches: ["*"]
+
+jobs:
+  flake:
+    runs-on: ubuntu-latest
+    if: (github.actor != 'dependabot[bot]')
+    env:
+      LC_GH_TOKEN: ${{ secrets.LC_GH_TOKEN }}
+    container:
+      image: python:3.10
+
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v3
+      - run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
+
+      - name: Update Git Diff Rename Limit
+        run: git config diff.renameLimit 16266
+
+      - name: Get changed files
+        id: changed-files
+        uses: tj-actions/changed-files@v35.4.1
+        with:
+          files: |
+            **/*.py
+
+      - name: Install flake8
+        run: pip install flake8==3.9.2 flake8-isort==4.0.0 autoflake==1.4
+
+      - name: Run flake8
+        if: steps.changed-files.outputs.any_changed == 'true'
+        run: python -m flake8 --verbose ${{ steps.changed-files.outputs.all_changed_files }}

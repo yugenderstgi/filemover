@@ -1,0 +1,10 @@
+rules:
+  - id: python-debugger-found
+    pattern-either:
+      - pattern: ipdb.set_trace()
+      - pattern: pdb.set_trace()
+      - pattern: breakpoint()
+    message: Semgrep found a Python debugger. Should not go to production like this.
+    severity: ERROR
+    languages:
+      - python

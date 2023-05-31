@@ -1,0 +1,10 @@
+rules:
+  - id: use-is-true
+    patterns:
+      - pattern-either:
+        - pattern: ... == True
+        - pattern: ... == None
+        - pattern: ... == False
+    message: Semgrep found a reference to == True/False/None.  Use is True/False/None
+    languages: [python]
+    severity: ERROR

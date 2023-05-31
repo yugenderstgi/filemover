@@ -1,0 +1,44 @@
+name: Interrogate
+
+on:
+  pull_request:
+    branches: ["*"]
+
+jobs:
+  interrogate:
+    runs-on: ubuntu-latest
+    if: (github.actor != 'dependabot[bot]')
+    env:
+      LC_GH_TOKEN: ${{ secrets.LC_GH_TOKEN }}
+    container:
+      image: python:3.10
+
+    steps:
+      - name: First interaction
+        uses: actions/first-interaction@v1.1.1
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          pr-message: |-
+            Congratulations on your first Pull Request and thanks for taking the time to improve DJANGO-LC-UTILS 🙂
+
+      - name: Check out repository code
+        uses: actions/checkout@v3
+      - run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
+
+      - name: Get changed files
+        id: changed-files
+        uses: tj-actions/changed-files@v35.4.1
+        with:
+          files: |
+            **/*.py
+          files_ignore: |
+            **/migrations/*.py
+            tests/**
+            config/settings/*.py
+
+      - name: Install interrogate
+        run: pip install interrogate==1.5.0
+
+      - name: Run interrogate
+        if: steps.changed-files.outputs.any_changed == 'true'
+        run: python -m interrogate --config=pyproject.toml ${{ steps.changed-files.outputs.all_changed_files }}

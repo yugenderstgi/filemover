@@ -1,0 +1,8 @@
+rules:
+  - id: print-statement-needs-removal
+    patterns:
+      - pattern-either:
+        - pattern: print(...)
+    message: Semgrep found a print statement that needs to be verified/removed
+    languages: [python]
+    severity: WARNING
