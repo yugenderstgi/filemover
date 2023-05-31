@@ -23,13 +23,10 @@ class FmActionSerailizer(serializers.ModelSerializer):
     
     def get_action_parms(self,obj):
         xml_data = obj.action_parms
-        print("xml :",xml_data)
         dict_data = xmltodict.parse(xml_data)
-        print("???",dict_data)
         if obj.action_type=='Unzip':
             return dict_data
         transform_params = dict_data['params']['transform_params']
-        print("$$$",transform_params)
         if transform_params:
             # Preprocess the transform_params XML content
             preprocess_xml = f"<root>{transform_params}</root>"
@@ -91,13 +88,10 @@ class FmJobActionEventSerailizer(serializers.ModelSerializer):
     
     def get_resolved_action_parms(self,obj):
         xml_data = obj.resolved_action_parms
-        print("xml :",xml_data)
         dict_data = xmltodict.parse(xml_data)
-        print("???",dict_data)
         # if obj.fm_action_id.action_type=='Unzip':
         #     return dict_data
         transform_params = dict_data['params']['transform_params']
-        print("$$$",transform_params)
         if transform_params:
             # Preprocess the transform_params XML content
             preprocess_xml = f"<root>{transform_params}</root>"
