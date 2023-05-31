@@ -55,12 +55,11 @@ class FmActionViewSet(viewsets.ReadOnlyModelViewSet):
         else:
             transform_params= params.get('transform_params',{})
             # it fetches the value of the transform_params field
-            print(transform_params)
             if transform_params:
                 params=action_params.get('params',{})
                 params.update({'transform_params': transform_params})
                 action_params.update({'params' : params})
-            print("action_params>>>",action_params)
+            
         #Change Action params back to XML
         fm_action_xml = convert_dict_to_xml(action_params)
         print("---------",fm_action_xml)
@@ -68,7 +67,7 @@ class FmActionViewSet(viewsets.ReadOnlyModelViewSet):
         fm_action.save()
         serializer = self.get_serializer(fm_action) #converting the FmAction instance into a serialized representation (e.g., JSON).
         return Response(serializer.data) # response containing the serialized data of the FmAction instance. 
-# Create your views here.
+
 
 class FmJobEventViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = FmJobEvent.objects.all().order_by('-start_tms')
