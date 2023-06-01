@@ -61,7 +61,7 @@ class FmActionViewSet(viewsets.ReadOnlyModelViewSet):
                 params = action_params.get("params", {})
                 params.update({"transform_params": transform_params})
                 action_params.update({"params": params})
-            print("action_params>>>", action_params)
+
         # Change Action params back to XML
         fm_action_xml = convert_dict_to_xml(action_params)
         fm_action.action_parms = fm_action_xml

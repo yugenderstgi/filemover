@@ -78,11 +78,18 @@ WSGI_APPLICATION = "Backend.wsgi.application"
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql_psycopg2",
-        "NAME": "basicproject",
+        "NAME": "clumiodemo",
         "USER": "postgres",
-        "PASSWORD": "201800567",
-        "HOST": "localhost",
+        "PASSWORD": "postgres123",
+        "HOST": "clumio-demo.cluster-crupz7wxq03u.ap-south-1.rds.amazonaws.com",
     },
+    # "default": {
+    #     "ENGINE": "django.db.backends.postgresql_psycopg2",
+    #     "NAME": "basicproject",
+    #     "USER": "postgres",
+    #     "PASSWORD": "201800567",
+    #     "HOST": "localhost",
+    # },
     # 'etran': {
     #     'ENGINE': 'django.db.backends.postgresql_psycopg2',
     #     'NAME': 'basicproject',
