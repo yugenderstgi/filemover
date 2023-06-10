@@ -12,6 +12,8 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 
 from pathlib import Path
 
+from decouple import config
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -20,7 +22,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "django-insecure-+1^xtu@-ubnlm__uc^yc!=7vneq)9vq3xgt=+v3k2%j&te%7d-"
+SECRET_KEY = config("SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -39,6 +41,8 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "api",
+    "django_filters",
+    "django.contrib.postgres",
 ]
 
 MIDDLEWARE = [
@@ -77,11 +81,11 @@ WSGI_APPLICATION = "Backend.wsgi.application"
 
 DATABASES = {
     "default": {
-        "ENGINE": "django.db.backends.postgresql_psycopg2",
-        "NAME": "clumiodemo",
-        "USER": "postgres",
-        "PASSWORD": "postgres123",
-        "HOST": "clumio-demo.cluster-crupz7wxq03u.ap-south-1.rds.amazonaws.com",
+        "ENGINE": config("ENGINE"),
+        "NAME": config("NAME"),
+        "USER": config("USER"),
+        "PASSWORD": config("PASSWORD"),
+        "HOST": config("HOST"),
     },
     # "default": {
     #     "ENGINE": "django.db.backends.postgresql_psycopg2",
@@ -91,10 +95,11 @@ DATABASES = {
     #     "HOST": "localhost",
     # },
     # 'etran': {
+    # clumio-demo.cluster-crupz7wxq03u.ap-south-1.rds.amazonaws.com
     #     'ENGINE': 'django.db.backends.postgresql_psycopg2',
     #     'NAME': 'basicproject',
     #     'USER':'postgres',
-    #     'PASSWORD':'201800567',
+    #     'PASSWORD':'201800567', postgres123
     #     'HOST':'localhost'
     # }
 }
