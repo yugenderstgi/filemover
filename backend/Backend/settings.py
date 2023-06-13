@@ -29,6 +29,44 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
+CORS_ORIGIN_ALLOW_ALL = False
+
+CORS_ORIGIN_WHITELIST = [
+    "http://localhost:8080",  # Update with your Vue.js application's URL
+    # Other allowed origins...
+]
+
+CORS_ALLOW_ALL_ORIGINS = False
+
+# Allow CORS on all paths
+CORS_URLS_REGEX = r"^.*$"
+
+# Optional: Define specific HTTP methods you want to allow
+CORS_ALLOW_METHODS = [
+    "GET",
+    "POST",
+    "PUT",
+    "PATCH",
+    "DELETE",
+    "OPTIONS",
+]
+
+# Optional: Define specific HTTP headers you want to allow
+CORS_ALLOW_HEADERS = [
+    "accept",
+    "accept-encoding",
+    "authorization",
+    "content-type",
+    "dnt",
+    "origin",
+    "user-agent",
+    "x-csrftoken",
+    "x-requested-with",
+]
+
+# Optional: Set whether CORS cookies should be included in requests
+CORS_ALLOW_CREDENTIALS = False
+
 
 # Application definition
 
@@ -43,11 +81,13 @@ INSTALLED_APPS = [
     "api",
     "django_filters",
     "django.contrib.postgres",
+    "corsheaders",
 ]
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
+    "corsheaders.middleware.CorsMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
