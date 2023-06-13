@@ -1,0 +1,18 @@
+:root {
+  --lc-primary: #0e2677;
+  --lc-secondary: #1c39cb;
+}
+
+.smallBtn {
+  border-bottom: 2px solid var(--lc-primary);
+  width: max-content;
+  color: var(--lc-primary);
+}
+.header {
+  color: var(--lc-primary);
+}
+
+.customTableHeader >>> thead.v-data-table-header tr {
+  border-bottom: 2px solid var(--lc-primary);
+  font-size: 1.5rem;
+}
