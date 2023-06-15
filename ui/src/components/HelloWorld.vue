@@ -1,11 +1,6 @@
 <template>
   <div class="d-flex">
-    <v-navigation-drawer
-      height="100vh"
-      class="pt-5 navDrawer"
-      width="350"
-      permanent
-    >
+    <v-navigation-drawer height="100vh" class="pt-5 navDrawer w-25" permanent>
       <div class="px-5 pb-4">
         <span class="fs-3">Admin Console</span>
         <div class="small">Select Schema</div>
@@ -48,7 +43,7 @@
         </template>
       </v-list>
     </v-navigation-drawer>
-    <div class="bg-light p-5 w-100">
+    <div class="bg-light p-5 w-75">
       <div class="bg-white h-100 p-4">
         <component :is="items[selectedTab].type"></component>
       </div>

@@ -1,3 +1,4 @@
+<!-- eslint-disable -->
 <template>
   <v-main>
     <div class="d-flex row justify-content-between w-100 mb-5">
@@ -21,24 +22,16 @@
         <v-stepper-content step="1">
           <v-data-table
             class="mt-5 pt-5 customTableHeader"
-            :headers="headers"
-            dense
-            :search="search"
-            :custom-filter="filterByJobId"
-            :items="items"
+            :headers="fmHeaders"
+            :items="fmJobs"
             item-key="jobId"
+            :search="search"
+            dense
           >
-            <template v-slot:item="{ item }">
-              <tr class="zebra-stripe-row">
-                <td>{{ item.id }}</td>
-                <td>{{ item.name }}</td>
-                <td>{{ item.dml_ts }}</td>
-                <td>
-                  <button class="small smallBtn" @click="fetchIdJob">
-                    View Action
-                  </button>
-                </td>
-              </tr>
+            <template v-slot:item.action="{ item }">
+              <button class="small smallBtn" @click="getEtranPayment(item.id)">
+                View Action
+              </button>
             </template>
           </v-data-table>
         </v-stepper-content>
@@ -46,32 +39,13 @@
           <v-data-table
             class="mt-5 pt-5 customTableHeader"
             dense
-            :headers="headers"
-            :items="items"
+            :headers="etranHeaders"
+            :items="etranItems"
             item-key="jobId"
-            ><template v-slot:item="{ item }">
-              <tr>
-                <td>{{ item.id }}</td>
-                <td>{{ item.name }}</td>
-                <td>{{ item.dml_ts }}</td>
-                <td>
-                  <button class="small smallBtn" @click="openDrawer()">
-                    View Actions Params
-                  </button>
-                </td>
-                <td>
-                  <button
-                    class="small smallBtn"
-                    @click="
-                      () => {
-                        openDialog = !openDialog;
-                      }
-                    "
-                  >
-                    Edit
-                  </button>
-                </td>
-              </tr>
+            ><template v-slot:item.action="{ item }">
+              <button class="small smallBtn" @click="getActionParams(item.id)">
+                View Action Params
+              </button>
             </template></v-data-table
           >
         </v-stepper-content>
@@ -80,126 +54,63 @@
     <v-overlay :value="drawer" color="var(--lc-primary)" opacity="0.75"
       ><RightPanel
         :drawer="drawer"
+        :action-params="actionParams"
+        from="configuringJobs"
         @close="
           () => {
             drawer = !drawer;
+          }
+        "
+        @openDialog="
+          () => {
+            drawer = false;
+            openDialog = true;
           }
         "
       ></RightPanel>
     </v-overlay>
     <v-overlay :value="openDialog" color="var(--lc-primary)" opacity="0.75">
       <v-dialog v-model="openDialog" max-width="900">
-        <v-card class="px-5 py-3" light>
-          <div class="d-flex flex-column">
-            <span class="fs-3 header">Edit FM_Action 15 Details</span>
-            <div class="d-flex gap-3">
-              <div class="d-flex flex-column flex-grow-1">
-                <span class="small">Action Type</span>
-                <v-select
-                  class="py-0 my-0 text-white inputBox"
-                  hide-details
-                  dense
-                  solo
-                  :items="options"
-                ></v-select>
-              </div>
-              <div class="d-flex flex-column flex-grow-1">
-                <span class="small">Action ID</span>
+        <v-card class="px-5 py-3 d-flex flex-column" light>
+          <h4 class="header">Edit Action Params</h4>
+          <div class="d-flex row">
+            <div class="d-flex flex-column col-4">
+              <span class="small">transform_name </span>
+              <span class="header">{{ actionParams.transform_name }}</span>
+            </div>
+            <div class="d-flex col-8 justify-content-start row">
+              <div
+                class="col-6 gap-1 mb-2"
+                v-for="(value, key) in actionParams.transform_params"
+              >
+                <span>{{ key }}</span>
                 <v-text-field
+                  v-model="actionParams.transform_params[key]"
                   class="inputBox"
-                  label="1"
-                  solo
-                  single-line
                   dense
-                  hide-details
-                ></v-text-field>
-              </div>
-              <div class="d-flex flex-column flex-grow-1">
-                <span class="small">Sequence</span>
-                <v-text-field
-                  class="inputBox"
-                  label="1"
                   solo
-                  single-line
-                  dense
                   hide-details
                 ></v-text-field>
               </div>
             </div>
-            <v-textarea label="Label"></v-textarea>
           </div>
-          <div>
-            <span class="fs-3 header">Action Params</span>
-            <v-row>
-              <v-col
-                ><span class="small">transform_name</span
-                ><v-text-field
-                  class="inputBox"
-                  label="Get
-              country File"
-                  solo
-                  single-line
-                  dense
-                  hide-details
-                ></v-text-field
-              ></v-col>
-              <v-col
-                ><span class="small">local_location</span
-                ><v-text-field
-                  class="inputBox"
-                  label="Home/sere/.sdg"
-                  solo
-                  single-line
-                  dense
-                  hide-details
-                ></v-text-field
-              ></v-col>
-              <v-col
-                ><span class="small">transform_name</span
-                ><v-text-field
-                  class="inputBox"
-                  label="Get
-              country File"
-                  solo
-                  single-line
-                  dense
-                  hide-details
-                ></v-text-field
-              ></v-col>
-            </v-row>
-            <v-row>
-              <v-col
-                ><span class="small">transform_name</span
-                ><v-text-field
-                  class="inputBox"
-                  label="Get
-              country File"
-                  solo
-                  single-line
-                  dense
-                  hide-details
-                ></v-text-field
-              ></v-col>
-              <v-col
-                ><span class="small">local_location</span
-                ><v-text-field
-                  class="inputBox"
-                  label="Home/sere/.sdg"
-                  solo
-                  single-line
-                  dense
-                  hide-details
-                ></v-text-field
-              ></v-col>
-            </v-row>
-          </div>
-          <div class="d-flex justify-content-end">
-            <button>Cancel</button>
-            <button>Save</button>
+          <div class="d-flex justify-content-end gap-3 mt-5 mr-10">
+            <button
+              class="smallBtn"
+              @click="
+                () => {
+                  actionParams = ogActionParams;
+                  openDialog = false;
+                }
+              "
+            >
+              Cancel
+            </button>
+            <button class="bigBtn px-3" @click="handleSave()">Save</button>
           </div>
         </v-card></v-dialog
-      ></v-overlay
-    >
+      >
+    </v-overlay>
   </v-main>
 </template>
 <script>
@@ -214,16 +125,61 @@ export default {
       drawer: false,
       search: '',
       openDialog: false,
-      options: ['Foo', 'Bar', 'Fizz', 'Buzz'],
-      headers: [
+      currentId: null,
+      currentActionId: null,
+      transform_params: [],
+      fmHeaders: [
         {
           text: 'Job_ID',
           value: 'id',
           sortable: false,
+          filterable: false,
         },
         {
           text: 'Job Name',
           value: 'name',
+          sortable: false,
+        },
+        {
+          text: 'Time Stamp',
+          value: 'dml_ts',
+          sortable: false,
+          filterable: false,
+        },
+        {
+          value: 'action',
+          sortable: false,
+          filterable: false,
+        },
+      ],
+      etranHeaders: [
+        {
+          text: 'Action_ID',
+          value: 'id',
+          sortable: false,
+          filterable: false,
+        },
+        {
+          text: 'Sequence',
+          value: 'seq',
+          sortable: false,
+          filterable: false,
+        },
+        {
+          text: 'Action Type',
+          value: 'action_type',
+          sortable: false,
+          filterable: false,
+        },
+        {
+          text: 'Transform Name',
+          value: 'transform_name',
+          sortable: false,
+          filterable: false,
+        },
+        {
+          text: 'Description',
+          value: 'description',
           sortable: false,
           filterable: false,
         },
@@ -233,36 +189,79 @@ export default {
           sortable: false,
           filterable: false,
         },
+
+        {
+          value: 'action',
+          sortable: false,
+          filterable: false,
+        },
       ],
-      items: [],
+      fmJobs: [],
+      etranItems: [],
+      actionParams: {},
+      ogActionParams: {},
     };
   },
   methods: {
-    openDrawer() {
-      this.drawer = true;
-    },
-    fetchJob() {
-      // makes axios call and get res
-      //this.items = res;
-    },
-    fetchIdJob() {
-      // makes axios call for that particular id
+    getEtranPayment(jobId) {
+      console.log(jobId);
+
       this.el = 2;
+      axios
+        .get(`http://127.0.0.1:8000/fmaction/?fm_job_id=${jobId}`)
+        .then((response) => {
+          this.currentId = jobId;
+          this.etranItems = response.data;
+          console.log(this.item);
+        })
+        .catch((error) => {
+          console.error(error);
+        });
     },
-    filterByJobId(value, search, item) {
-      console.log(value, search, item);
+    async getActionParams(actionId) {
+      await axios
+        .get(
+          `http://127.0.0.1:8000/fmaction/?fm_job_id=${this.currentId}&fm_action_id=${actionId}`
+        )
+        .then((response) => {
+          this.actionParams = response.data[0].action_parms.params;
+          this.ogActionParams = this.actionParams;
+          console.log(this.actionParams);
+        })
+        .catch((error) => {
+          console.error(error);
+        });
+      this.drawer = true;
+      this.currentActionId = actionId;
+    },
+    handleSave() {
+      const url = `http://127.0.0.1:8000/fmaction/${this.currentActionId}/update_action_params/`;
+      const data = {
+        action_parms: {
+          params: {
+            transform_params: {
+              ...this.actionParams.transform_params,
+            },
+          },
+        },
+      };
+
+      axios.post(url, data).then((response) => {
+        // Handle the response data
+        console.log('Response:', response.data);
+      });
     },
   },
   created() {
-    axios.get('http://127.0.0.1:8000/fmjobs')
-  .then(response => {
-    this.items=response.data
-    console.log(this.item);
-  })
-  .catch(error => {
-    console.error(error);
-  });
-
+    axios
+      .get('http://127.0.0.1:8000/fmjobs')
+      .then((response) => {
+        this.fmJobs = response.data;
+        console.log(this.item);
+      })
+      .catch((error) => {
+        console.error(error);
+      });
   },
 };
 </script>
@@ -272,11 +271,6 @@ export default {
   font-size: 1.5rem;
 }
 
-.inputBox {
-  padding: 0;
-  border: 2px solid var(--lc-primary);
-  border-radius: 0px;
-}
 .v-icon {
   background-color: var(--lc-primary);
   color: white;

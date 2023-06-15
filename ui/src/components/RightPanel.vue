@@ -1,16 +1,27 @@
 <template>
   <v-sheet class="rightPanel" v-if="drawer" elevation="1" light>
-    <div class="d-flex flex-column mt-10 ml-7">
+    <div class="d-flex flex-column mt-10 mx-7">
       <button class="small smallBtn" @click="$emit('close')">Close</button>
       <div class="d-flex flex-column mt-5">
-        <span class="fs-3 header">Action Params</span>
+        <div class="d-flex justify-content-between">
+          <span class="header">Action Params</span>
+          <button
+            v-if="from === 'configuringJobs'"
+            class="bigBtn"
+            @click="$emit('openDialog')"
+          >
+            Edit Action Params
+          </button>
+        </div>
+
         <v-data-table
           class="customTableHeader"
           :headers="headers"
           :items="items"
           dense
           hide-default-footer
-        ></v-data-table>
+        >
+        </v-data-table>
       </div>
     </div>
   </v-sheet>
@@ -19,19 +30,40 @@
 export default {
   props: {
     drawer: Boolean,
+    actionParams: Object,
+    from: String,
+  },
+  methods: {
+    editItem(item) {
+      this.openEditDialog = true;
+    },
+  },
+  computed: {
+    items() {
+      this.transform_params = Object.entries(
+        this.actionParams.transform_params
+      ).map(([key, value]) => ({ key, value, isEditable: true }));
+      return [
+        {
+          key: 'transform_name',
+          value: this.actionParams.transform_name,
+          isEditable: false,
+        },
+
+        ...this.transform_params,
+      ];
+    },
   },
   data() {
     return {
+      openDialog: false,
+      transform_params: [],
+      openEditDialog: false,
       headers: [
         { text: 'Key', value: 'key', sortable: false, filterable: false },
         { text: 'Value', value: 'value', sortable: false, filterable: false },
-      ],
-      items: [
-        { key: 'transform_name', value: 'Get Country File' },
-        { key: 'transform_name', value: 'Get Country File' },
-        { key: 'transform_name', value: 'Get Country File' },
-        { key: 'transform_name', value: 'Get Country File' },
-        { key: 'transform_name', value: 'Get Country File' },
+
+        { value: 'action', sortable: false, filterable: false },
       ],
     };
   },

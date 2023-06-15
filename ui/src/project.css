@@ -8,6 +8,12 @@
   width: max-content;
   color: var(--lc-primary);
 }
+.bigBtn {
+  background-color: var(--lc-secondary);
+  color: white;
+  border-radius: 5px;
+  padding: 6px;
+}
 .header {
   color: var(--lc-primary);
 }
@@ -16,3 +22,9 @@
   border-bottom: 2px solid var(--lc-primary);
   font-size: 1.5rem;
 }
+.inputBox {
+  padding: 0;
+  border: 2px solid var(--lc-primary);
+  border-radius: 0px;
+}
+

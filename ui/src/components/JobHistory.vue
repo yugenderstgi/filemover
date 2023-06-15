@@ -1,3 +1,4 @@
+<!-- eslint-disable -->
 <template>
   <v-main>
     <div class="d-flex flex-column">
@@ -14,38 +15,27 @@
                 :items="items"
                 item-key="jobId"
               >
-                <!-- <template v-slot:item="{ item }">
-                  <tr class="zebra-stripe-row">
-                    <td>{{ item.id }}</td>
-                    <td>{{ item.name }}</td>
-                    <td>{{ item.dml_ts }}</td>
-                    <td>
-                      <button class="small smallBtn" @click="el = 2">
-                        View Action
-                      </button>
-                    </td>
-                  </tr>
-                </template> -->
+                <template v-slot:item.action="{ item }">
+                  <button class="small smallBtn" @click="getActions(item.id)">
+                    View Action
+                  </button>
+                </template>
               </v-data-table>
             </v-stepper-content>
-            <v-stepper-content step="2">
+            <v-stepper-content step="2" class="pl-0">
               <v-data-table
-                class="mt-5 pt-5 customTableHeader"
+                class="mt-5 pt-5 customTableHeader mr-10"
                 dense
-                :headers="headers"
-                :items="items"
+                :headers="jobDescHeader"
+                :items="jobDescItems"
                 item-key="jobId"
-                ><template v-slot:item="{ item }">
-                  <tr>
-                    <td>{{ item.jobId }}</td>
-                    <td>{{ item.jobName }}</td>
-                    <td>{{ item.timeStamp }}</td>
-                    <td>
-                      <button class="small smallBtn" @click="openDrawer()">
-                        View Actions Params
-                      </button>
-                    </td>
-                  </tr>
+                ><template v-slot:item.action="{ item }">
+                  <button
+                    class="small smallBtn"
+                    @click="getResolvedActionParams(item.id)"
+                  >
+                    View Resolved Action Params
+                  </button>
                 </template></v-data-table
               >
             </v-stepper-content>
@@ -54,6 +44,8 @@
         <v-overlay :value="drawer" color="var(--lc-primary)" opacity="0.75"
           ><RightPanel
             :drawer="drawer"
+            :action-params="actionParams"
+            from="jobHistory"
             @close="
               () => {
                 drawer = !drawer;
@@ -75,8 +67,18 @@ export default {
     return {
       el: 1,
       headers: [
-        { text: 'Job Event ID', value: 'id', sortable: false, filterable: false },
-        { text: 'Job ID', value: 'fm_job_id', sortable: false, filterable: false },
+        {
+          text: 'Job Event ID',
+          value: 'id',
+          sortable: false,
+          filterable: false,
+        },
+        {
+          text: 'Job ID',
+          value: 'fm_job_id',
+          sortable: false,
+          filterable: false,
+        },
         {
           text: 'Job Name',
           value: 'job_name',
@@ -107,13 +109,70 @@ export default {
           sortable: false,
           filterable: false,
         },
+        {
+          value: 'action',
+          sortable: false,
+          filterable: false,
+        },
       ],
-      items: []
-,      drawer: false,
+      items: [],
+      drawer: false,
       dates: null,
       datePickerOpen: false,
       selectedDates: null,
       dateRange: '',
+      currentJobEventId: '',
+      actionParams: {},
+      jobDescHeader: [
+        {
+          text: 'Job Action Event ID',
+          value: 'id',
+          sortable: false,
+          filterable: false,
+        },
+        {
+          text: 'Action ID',
+          value: 'fm_action_id',
+          sortable: false,
+          filterable: false,
+        },
+        {
+          text: 'Action Type',
+          value: 'transform_name',
+          sortable: false,
+          filterable: false,
+        },
+        {
+          text: 'Action Duration',
+          value: 'action_duration',
+          sortable: false,
+          filterable: false,
+        },
+        {
+          text: 'Action Start',
+          value: 'start_tms',
+          sortable: false,
+          filterable: false,
+        },
+        {
+          text: 'Action End',
+          value: 'end_tms',
+          sortable: false,
+          filterable: false,
+        },
+        {
+          text: 'Status',
+          value: 'status',
+          sortable: false,
+          filterable: false,
+        },
+        {
+          value: 'action',
+          sortable: false,
+          filterable: false,
+        },
+      ],
+      jobDescItems: [],
     };
   },
   methods: {
@@ -133,17 +192,42 @@ export default {
         this.dateRange = `${startDate.toLocaleDateString()} - ${endDate.toLocaleDateString()}`;
       }
     },
+    async getActions(jobEventId) {
+      this.currentJobEventId = jobEventId;
+      await axios(
+        `http://127.0.0.1:8000/fmjobactionevent/?fm_job_event_id=${jobEventId}`
+      ).then((res) => {
+        this.jobDescItems = res.data;
+      });
+      this.el = 2;
+    },
+    async getResolvedActionParams(actionId) {
+      await axios
+        .get(
+          `http://127.0.0.1:8000/fmjobactionevent/?
+fm_job_event_id=${this.currentJobEventId}&fm_job_action_event_id=${actionId}`
+        )
+
+        .then((response) => {
+          this.actionParams = response.data[0].resolved_action_parms.params;
+          console.log(this.actionParams);
+        })
+        .catch((error) => {
+          console.error(error);
+        });
+      this.drawer = true;
+    },
   },
   created() {
-    axios.get('http://127.0.0.1:8000/fmjobevent/')
-  .then(response => {
-    this.items=response.data
-    console.log(this.item);
-  })
-  .catch(error => {
-    console.error(error);
-  });
-
+    axios
+      .get('http://127.0.0.1:8000/fmjobevent/')
+      .then((response) => {
+        this.items = response.data;
+        console.log(this.item);
+      })
+      .catch((error) => {
+        console.error(error);
+      });
   },
   computed: {
     dateRangeText() {
