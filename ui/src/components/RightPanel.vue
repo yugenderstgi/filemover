@@ -1,3 +1,4 @@
+/* eslint-disable */
 <template>
   <v-sheet class="rightPanel" v-if="drawer" elevation="1" light>
     <div class="d-flex flex-column mt-10 mx-7">
@@ -34,13 +35,13 @@ export default {
     from: String,
   },
   methods: {
-    editItem(item) {
+    editItem() {
       this.openEditDialog = true;
     },
   },
   computed: {
     items() {
-      this.transform_params = Object.entries(
+      const transform_params = Object.entries(
         this.actionParams.transform_params
       ).map(([key, value]) => ({ key, value, isEditable: true }));
       return [
@@ -50,7 +51,7 @@ export default {
           isEditable: false,
         },
 
-        ...this.transform_params,
+        ...transform_params,
       ];
     },
   },

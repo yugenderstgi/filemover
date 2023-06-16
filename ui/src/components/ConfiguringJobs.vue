@@ -245,6 +245,7 @@ export default {
           },
         },
       };
+      console.log('parm')
 
       axios.post(url, data).then((response) => {
         // Handle the response data
