@@ -2,6 +2,8 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from django.db import connections
+from django.http import HttpResponse
 
 from .models import (
     FilemoverAction,
@@ -24,6 +26,28 @@ from .utils import (
     convert_dicttoxml_CDATA,
 )
 
+class SchemaNamesViewSet(viewsets.ViewSet):
+    def list(self, request):
+        with connections['default'].cursor() as cursor:
+            cursor.execute("SELECT DISTINCT table_schema FROM information_schema.tables where table_name like 'fm_job'")
+            schema_names = [row[0] for row in cursor.fetchall()]
+        return Response({'schema_names': schema_names})
+
+    def create(self, request):
+        selected_schema = request.data.get('schema_name')
+        print("selected_schema",selected_schema)
+
+        # Set the selected schema in the session
+        # request.session['selected_schema'] = selected_schema
+        # request.session.save()
+        # print("000",request.session['selected_schema'])
+        # Update the database connection settings
+        db_settings = connections['default'].settings_dict
+        db_settings['OPTIONS']['options'] = f"-c search_path={selected_schema}"
+
+        # Return a response indicating successful update
+        return Response("Database schema updated successfully.")
+    
 
 class FilemoverJobViewSet(viewsets.ReadOnlyModelViewSet):
     """_summary_

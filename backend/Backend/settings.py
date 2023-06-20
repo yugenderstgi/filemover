@@ -64,9 +64,9 @@ CORS_ALLOW_HEADERS = [
     "x-requested-with",
 ]
 
-# Optional: Set whether CORS cookies should be included in requests
-CORS_ALLOW_CREDENTIALS = False
 
+
+SESSION_ENGINE = "django.contrib.sessions.backends.cache"
 
 # Application definition
 
@@ -83,6 +83,7 @@ INSTALLED_APPS = [
     "django.contrib.postgres",
     "corsheaders",
 ]
+
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
@@ -126,6 +127,9 @@ DATABASES = {
         "USER": config("USER"),
         "PASSWORD": config("PASSWORD"),
         "HOST": config("HOST"),
+        "OPTIONS": {
+            "options": "-c search_path=public",
+        },
     },
     # "default": {
     #     "ENGINE": "django.db.backends.postgresql_psycopg2",
