@@ -1,14 +1,40 @@
 :root {
-  --lc-primary: #0e2677;
-  --lc-secondary: #1c39cb;
+  --lc-primary: #002e6d;
+  --lc-primary-hover: #007dbc;
+  --lc-secondary: #b8252b;
+  --lc-secondary-hover: #3e444a;
+  --lc-action: #b8252b;
+  --lc-success: #1be362;
+  --lc-success-hover: #48b461;
+  --lc-danger: #d90811;
+  --lc-danger-hover: #bb2d3b;
+  --lc-warning: #ffc107;
+  --lc-warning-hover: #ffca2c;
+  --lc-info: #007dbc;
+  --lc-info-hover: #006aa0;
+  --lc-dark: #666666;
+  --lc-background-color: #e2eaef;
+  --lc-bg-hover: #cdd7e0;
+  --lc-bg-light: #f4f8fa;
+  --lc-bg-white: #f4f8fa;
+  --lc-bg-dark: #0a0e14;
+  --lc-text-light: #f4f8fa;
+  --lc-text-dark: #0a0e14;
+  --lc-light-gray: #d2dae0;
+  --lc-primary-light: #003b89;
+  --lc-disabled: #99a2aa;
+  --v-primary-base: var(--lc-primary) !important;
+  --v-secondary-base: var(--lc-secondary) !important;
+  --v-accent-base: var(--lc-action) !important;
+  --v-success-base: var(--lc-success) !important;
+  --v-error-base: var(--lc-danger) !important;
 }
-
-.smallBtn {
+.btn-white {
   border-bottom: 2px solid var(--lc-primary);
   width: max-content;
   color: var(--lc-primary);
 }
-.bigBtn {
+.btn-primary {
   background-color: var(--lc-secondary);
   color: white;
   border-radius: 5px;
@@ -17,14 +43,8 @@
 .header {
   color: var(--lc-primary);
 }
-
-.customTableHeader >>> thead.v-data-table-header tr {
-  border-bottom: 2px solid var(--lc-primary);
-  font-size: 1.5rem;
-}
 .inputBox {
   padding: 0;
   border: 2px solid var(--lc-primary);
-  border-radius: 0px;
+  border-radius: 2px;
 }
-

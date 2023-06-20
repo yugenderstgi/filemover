@@ -8,7 +8,7 @@
           <v-stepper-items>
             <v-stepper-content step="1">
               <v-data-table
-                class="mt-5 pt-5 customTableHeader"
+                class="mt-5 pt-5 customTable"
                 :headers="headers"
                 dense
                 :search="search"
@@ -24,7 +24,7 @@
             </v-stepper-content>
             <v-stepper-content step="2" class="pl-0">
               <v-data-table
-                class="mt-5 pt-5 customTableHeader mr-10"
+                class="mt-5 pt-5 customTable mr-10"
                 dense
                 :headers="jobDescHeader"
                 :items="jobDescItems"
@@ -70,44 +70,30 @@ export default {
         {
           text: 'Job Event ID',
           value: 'id',
-          sortable: false,
-          filterable: false,
         },
         {
           text: 'Job ID',
           value: 'fm_job_id',
-          sortable: false,
-          filterable: false,
         },
         {
           text: 'Job Name',
           value: 'job_name',
-          sortable: false,
-          filterable: false,
         },
         {
           text: 'Job Duration',
           value: 'job_duration',
-          sortable: false,
-          filterable: false,
         },
         {
           text: 'Job Start',
           value: 'start_tms',
-          sortable: false,
-          filterable: false,
         },
         {
           text: 'Job End',
           value: 'end_tms',
-          sortable: false,
-          filterable: false,
         },
         {
           text: 'Status',
           value: 'status',
-          sortable: false,
-          filterable: false,
         },
         {
           value: 'action',
@@ -229,11 +215,20 @@ fm_job_event_id=${this.currentJobEventId}&fm_job_action_event_id=${actionId}`
         console.error(error);
       });
   },
-  computed: {
-    dateRangeText() {
-      if (this.dates) return this.dates.join(' ~ ');
-      return '';
-    },
-  },
 };
 </script>
+<style scoped>
+.customTable {
+  background-color: var(--lc-bg-light);
+}
+.customTable >>> tbody tr:nth-child(even) {
+  background-color: var(--lc-background-color);
+}
+.customTable >>> thead tr {
+  border-bottom: 2px solid var(--lc-primary);
+}
+.customTable >>> thead tr th {
+  color: var(--lc-primary) !important;
+  font-size: 0.875rem !important;
+}
+</style>

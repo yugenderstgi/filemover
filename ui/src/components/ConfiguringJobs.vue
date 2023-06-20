@@ -1,35 +1,32 @@
 <!-- eslint-disable -->
 <template>
-  <v-main>
-    <div class="d-flex row justify-content-between w-100 mb-5">
-      <span class="col-7 fs-3 header">Configuring Jobs</span>
-      <div class="d-flex col-4">
-        <v-icon class="px-2">mdi-magnify</v-icon>
-        <v-text-field
-          :counter="false"
-          class="inputBox"
-          label="Search by FM Jobs"
-          v-model="search"
-          solo
-          single-line
-          dense
-          hide-details
-        ></v-text-field>
-      </div>
+  <div class="d-flex flex-column px-4">
+    <div class="d-flex justify-content-between mt-4">
+      <span class="header fs-3">Job Configuration</span>
+      <SearchBar
+        v-model="search"
+        :action="true"
+        :placeholder="
+          el === 2 ? 'Search by Transform Name' : 'Search by FM Jobs'
+        "
+      ></SearchBar>
     </div>
     <v-stepper v-model="el" flat>
       <v-stepper-items>
         <v-stepper-content step="1">
           <v-data-table
-            class="mt-5 pt-5 customTableHeader"
+            class="customTable"
             :headers="fmHeaders"
             :items="fmJobs"
-            item-key="jobId"
+            item-key="id"
             :search="search"
             dense
           >
             <template v-slot:item.action="{ item }">
-              <button class="small smallBtn" @click="getEtranPayment(item.id)">
+              <button
+                class="small btn-white"
+                @click="getFmJobsActions(item.id)"
+              >
                 View Action
               </button>
             </template>
@@ -37,13 +34,14 @@
         </v-stepper-content>
         <v-stepper-content step="2">
           <v-data-table
-            class="mt-5 pt-5 customTableHeader"
+            :headers="jobActionHeaders"
+            :items="jobActions"
+            class="customTable"
+            :search="search"
             dense
-            :headers="etranHeaders"
-            :items="etranItems"
-            item-key="jobId"
+            item-key="id"
             ><template v-slot:item.action="{ item }">
-              <button class="small smallBtn" @click="getActionParams(item.id)">
+              <button class="small btn-white" @click="getActionParams(item.id)">
                 View Action Params
               </button>
             </template></v-data-table
@@ -51,19 +49,19 @@
         </v-stepper-content>
       </v-stepper-items>
     </v-stepper>
-    <v-overlay :value="drawer" color="var(--lc-primary)" opacity="0.75"
+    <v-overlay :value="openRightPanel" color="var(--lc-primary)" opacity="0.75"
       ><RightPanel
-        :drawer="drawer"
+        :open-right-panel="openRightPanel"
         :action-params="actionParams"
         from="configuringJobs"
         @close="
           () => {
-            drawer = !drawer;
+            openRightPanel = !openRightPanel;
           }
         "
         @openDialog="
           () => {
-            drawer = false;
+            openRightPanel = false;
             openDialog = true;
           }
         "
@@ -71,16 +69,16 @@
     </v-overlay>
     <v-overlay :value="openDialog" color="var(--lc-primary)" opacity="0.75">
       <v-dialog v-model="openDialog" max-width="900">
-        <v-card class="px-5 py-3 d-flex flex-column" light>
-          <h4 class="header">Edit Action Params</h4>
-          <div class="d-flex row">
-            <div class="d-flex flex-column col-4">
+        <v-card class="px-4 py-3 d-flex flex-column" light>
+          <span class="header fs-4">Edit Action Params</span>
+          <div class="d-flex row mt-3">
+            <div class="d-flex flex-column col-3">
               <span class="small">transform_name </span>
               <span class="header">{{ actionParams.transform_name }}</span>
             </div>
-            <div class="d-flex col-8 justify-content-start row">
+            <div class="d-flex col-9 justify-content-start row">
               <div
-                class="col-6 gap-1 mb-2"
+                class="col-6 gap-1 mb-4"
                 v-for="(value, key) in actionParams.transform_params"
               >
                 <span>{{ key }}</span>
@@ -94,9 +92,9 @@
               </div>
             </div>
           </div>
-          <div class="d-flex justify-content-end gap-3 mt-5 mr-10">
+          <div class="d-flex justify-content-end gap-3 mt-3 mr-10">
             <button
-              class="smallBtn"
+              class="btn-white"
               @click="
                 () => {
                   actionParams = ogActionParams;
@@ -106,28 +104,27 @@
             >
               Cancel
             </button>
-            <button class="bigBtn px-3" @click="handleSave()">Save</button>
+            <button class="btn-primary px-3" @click="handleSave()">Save</button>
           </div>
         </v-card></v-dialog
       >
     </v-overlay>
-  </v-main>
+  </div>
 </template>
 <script>
+import { SearchBar } from '@lenders-cooperative/los-app-ui-component-lib';
 import RightPanel from './RightPanel.vue';
 import axios from 'axios';
-
 export default {
-  components: { RightPanel },
+  components: { SearchBar, RightPanel },
   data() {
     return {
       el: 1,
-      drawer: false,
       search: '',
+      openRightPanel: false,
       openDialog: false,
-      currentId: null,
-      currentActionId: null,
-      transform_params: [],
+      fmJobs: [],
+      jobActions: [],
       fmHeaders: [
         {
           text: 'Job_ID',
@@ -152,7 +149,7 @@ export default {
           filterable: false,
         },
       ],
-      etranHeaders: [
+      jobActionHeaders: [
         {
           text: 'Action_ID',
           value: 'id',
@@ -175,7 +172,7 @@ export default {
           text: 'Transform Name',
           value: 'transform_name',
           sortable: false,
-          filterable: false,
+          filterable: true,
         },
         {
           text: 'Description',
@@ -196,64 +193,44 @@ export default {
           filterable: false,
         },
       ],
-      fmJobs: [],
-      etranItems: [],
+      currentJobId: null,
       actionParams: {},
-      ogActionParams: {},
+      ogActionParams: {}, // saves unedited version of actionParms
     };
   },
   methods: {
-    getEtranPayment(jobId) {
-      console.log(jobId);
-
+    getFmJobsActions(fmJobId) {
+      // fetches actions for that particular job
       this.el = 2;
       axios
-        .get(`http://127.0.0.1:8000/fmaction/?fm_job_id=${jobId}`)
+        .get(`http://127.0.0.1:8000/fmaction/?fm_job_id=${fmJobId}`)
         .then((response) => {
-          this.currentId = jobId;
-          this.etranItems = response.data;
-          console.log(this.item);
+          this.currentJobId = fmJobId;
+          this.jobActions = response.data;
         })
         .catch((error) => {
           console.error(error);
         });
     },
     async getActionParams(actionId) {
+      // fetches action params for particular action
       await axios
         .get(
-          `http://127.0.0.1:8000/fmaction/?fm_job_id=${this.currentId}&fm_action_id=${actionId}`
+          `http://127.0.0.1:8000/fmaction/?fm_job_id=${this.currentJobId}&fm_action_id=${actionId}`
         )
         .then((response) => {
           this.actionParams = response.data[0].action_parms.params;
           this.ogActionParams = this.actionParams;
-          console.log(this.actionParams);
         })
         .catch((error) => {
           console.error(error);
         });
-      this.drawer = true;
+      this.openRightPanel = true;
       this.currentActionId = actionId;
-    },
-    handleSave() {
-      const url = `http://127.0.0.1:8000/fmaction/${this.currentActionId}/update_action_params/`;
-      const data = {
-        action_parms: {
-          params: {
-            transform_params: {
-              ...this.actionParams.transform_params,
-            },
-          },
-        },
-      };
-      console.log('parm')
-
-      axios.post(url, data).then((response) => {
-        // Handle the response data
-        console.log('Response:', response.data);
-      });
     },
   },
   created() {
+    // fetches all fm jobs
     axios
       .get('http://127.0.0.1:8000/fmjobs')
       .then((response) => {
@@ -267,13 +244,28 @@ export default {
 };
 </script>
 <style scoped>
-.customTableHeader >>> thead.v-data-table-header tr {
-  border-bottom: 2px solid var(--lc-primary);
-  font-size: 1.5rem;
+>>> .v-text-field.v-text-field--solo.v-input--dense > .v-input__control {
+  min-height: 48px;
+  min-width: 250px;
+}
+>>> .v-data-footer {
+  justify-content: flex-end;
 }
 
-.v-icon {
-  background-color: var(--lc-primary);
-  color: white;
+>>> .v-stepper__content {
+  padding: 0 !important;
+}
+.customTable {
+  background-color: var(--lc-bg-light);
+}
+.customTable >>> tbody tr:nth-child(even) {
+  background-color: var(--lc-background-color);
+}
+.customTable >>> thead tr {
+  border-bottom: 2px solid var(--lc-primary);
+}
+.customTable >>> thead tr th {
+  color: var(--lc-primary) !important;
+  font-size: 0.875rem !important;
 }
 </style>

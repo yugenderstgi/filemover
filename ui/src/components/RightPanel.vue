@@ -1,14 +1,13 @@
-/* eslint-disable */
 <template>
-  <v-sheet class="rightPanel" v-if="drawer" elevation="1" light>
-    <div class="d-flex flex-column mt-10 mx-7">
-      <button class="small smallBtn" @click="$emit('close')">Close</button>
-      <div class="d-flex flex-column mt-5">
-        <div class="d-flex justify-content-between">
-          <span class="header">Action Params</span>
+  <v-sheet class="rightPanel" v-if="openRightPanel" light>
+    <div class="d-flex flex-column pt-5 px-4">
+      <button class="small btn-white" @click="$emit('close')">Close</button>
+      <div class="d-flex flex-column">
+        <div class="d-flex justify-content-between my-3">
+          <span class="header fs-4">Action Params</span>
           <button
             v-if="from === 'configuringJobs'"
-            class="bigBtn"
+            class="btn-primary"
             @click="$emit('openDialog')"
           >
             Edit Action Params
@@ -16,7 +15,7 @@
         </div>
 
         <v-data-table
-          class="customTableHeader"
+          class="customTable"
           :headers="headers"
           :items="items"
           dense
@@ -30,25 +29,19 @@
 <script>
 export default {
   props: {
-    drawer: Boolean,
+    openRightPanel: Boolean,
     actionParams: Object,
     from: String,
-  },
-  methods: {
-    editItem() {
-      this.openEditDialog = true;
-    },
   },
   computed: {
     items() {
       const transform_params = Object.entries(
         this.actionParams.transform_params
-      ).map(([key, value]) => ({ key, value, isEditable: true }));
+      ).map(([key, value]) => ({ key, value }));
       return [
         {
           key: 'transform_name',
           value: this.actionParams.transform_name,
-          isEditable: false,
         },
 
         ...transform_params,
@@ -58,28 +51,35 @@ export default {
   data() {
     return {
       openDialog: false,
-      transform_params: [],
       openEditDialog: false,
       headers: [
         { text: 'Key', value: 'key', sortable: false, filterable: false },
         { text: 'Value', value: 'value', sortable: false, filterable: false },
-
-        { value: 'action', sortable: false, filterable: false },
       ],
     };
   },
 };
 </script>
 <style scoped>
-.customTableHeader >>> thead.v-data-table-header tr {
-  border-bottom: 2px solid var(--lc-primary);
-  font-size: 1.5rem;
-}
 .rightPanel {
   position: fixed !important;
   right: 0 !important;
   top: 0 !important;
   height: 100% !important;
-  width: 60% !important;
+  width: 55% !important;
+  background-color: var(--lc-bg-light);
+}
+.customTable {
+  background-color: var(--lc-bg-light);
+}
+.customTable >>> tbody tr:nth-child(even) {
+  background-color: var(--lc-background-color);
+}
+.customTable >>> thead tr {
+  border-bottom: 2px solid var(--lc-primary);
+}
+.customTable >>> thead tr th {
+  color: var(--lc-primary) !important;
+  font-size: 0.875rem !important;
 }
 </style>
