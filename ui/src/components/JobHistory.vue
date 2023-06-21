@@ -3,17 +3,45 @@
   <v-main>
     <div class="d-flex flex-column">
       <span class="fs-3 header">Job History</span>
+      <v-menu
+        v-model="openCalender"
+        :close-on-content-click="false"
+        :nudge-right="40"
+        transition="scale-transition"
+        offset-y
+        min-width="auto"
+      >
+        <template v-slot:activator="{ on, attrs }">
+          <v-text-field
+            v-model="dateRangeText"
+            label="Select the date range"
+            prepend-icon="mdi-calendar"
+            readonly
+            v-bind="attrs"
+            v-on="on"
+          ></v-text-field>
+        </template>
+        <v-date-picker v-model="dates" range no-title
+          ><v-spacer></v-spacer>
+          <v-btn text color="primary" @click="openCalender = false">
+            Cancel
+          </v-btn>
+          <v-btn text color="primary" @click="updateJobs()">
+            OK
+          </v-btn></v-date-picker
+        >
+      </v-menu>
       <div class="d-flex flex-column">
         <v-stepper v-model="currenStep" flat non-linear>
-          <v-stepper-header>
+          <v-stepper-header class="shadow-none">
             <v-stepper-step editable step="1"> Job Event List </v-stepper-step>
             <v-divider></v-divider>
             <v-stepper-step step="2"> {{ stepperHeading }} </v-stepper-step>
           </v-stepper-header>
           <v-stepper-items>
-            <v-stepper-content step="1">
+            <v-stepper-content class="pt-2" step="1">
               <v-data-table
-                class="mt-5 pt-5 customTableHeader"
+                class="customTableHeader"
                 :headers="headers"
                 dense
                 :search="search"
@@ -74,13 +102,13 @@
 <script>
 import RightPanel from './RightPanel.vue';
 import axios from 'axios';
-
 export default {
   components: { RightPanel },
   data() {
     return {
       currenStep: 1,
       search: '',
+      dates: [],
       headers: [
         {
           text: 'Job Event ID',
@@ -140,12 +168,12 @@ export default {
       ],
       items: [],
       drawer: false,
-      dates: null,
       datePickerOpen: false,
       selectedDates: null,
       dateRange: '',
       currentJobEventId: '',
       actionParams: {},
+      openCalender: false,
       jobDescHeader: [
         {
           text: 'Job Action Event ID',
@@ -218,6 +246,14 @@ export default {
     openDrawer() {
       this.drawer = true;
     },
+    updateJobs() {
+      this.openCalender = false;
+      axios
+        .get(
+          `http://127.0.0.1:8000/fmjobevent/?start_tms=${this.dates[0]}&end_tms=${this.dates[1]}`
+        )
+        .then((res) => (this.items = res.data));
+    },
     openDatePicker() {
       this.datePickerOpen = true;
     },
@@ -234,7 +270,6 @@ export default {
     async getActions(jobEvent) {
       this.currentJobEventId = jobEvent.id;
       this.isLoading = true;
-
       await axios(
         `http://127.0.0.1:8000/fmjobactionevent/?fm_job_event_id=${jobEvent.id}`
       ).then((res) => {
@@ -250,7 +285,6 @@ export default {
           `http://127.0.0.1:8000/fmjobactionevent/?
 fm_job_event_id=${this.currentJobEventId}&fm_job_action_event_id=${actionId}`
         )
-
         .then((response) => {
           this.actionParams = response.data[0].resolved_action_parms.params;
           console.log(this.actionParams);
@@ -283,7 +317,6 @@ fm_job_event_id=${this.currentJobEventId}&fm_job_action_event_id=${actionId}`
   },
 };
 </script>
-
 <style scoped>
 .customTableHeader >>> thead.v-data-table-header tr {
   border-bottom: 2px solid var(--lc-primary);
