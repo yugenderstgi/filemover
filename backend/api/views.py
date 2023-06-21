@@ -27,16 +27,20 @@ from .utils import (
 )
 
 class SchemaNamesViewSet(viewsets.ViewSet):
+    current_schema={'key':'public'}
     def list(self, request):
         with connections['default'].cursor() as cursor:
             cursor.execute("SELECT DISTINCT table_schema FROM information_schema.tables where table_name like 'fm_job'")
             schema_names = [row[0] for row in cursor.fetchall()]
-        return Response({'schema_names': schema_names})
+        
+        
+        return Response({'schema_names': schema_names,'current_schema':SchemaNamesViewSet.current_schema['key']})
 
     def create(self, request):
         selected_schema = request.data.get('schema_name')
         print("selected_schema",selected_schema)
-
+        
+        SchemaNamesViewSet.current_schema['key']=selected_schema
         # Set the selected schema in the session
         # request.session['selected_schema'] = selected_schema
         # request.session.save()

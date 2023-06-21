@@ -13,12 +13,12 @@
           height="45"
           hide-details
           solo
-          :items="options"
+          :items="schemaOptions"
         ></v-select>
       </div>
 
       <v-list>
-        <template v-for="item in items">
+        <div v-for="item in items" :key="item.id">
           <v-list-item
             class="px-5 text-white"
             :class="item.id == selectedTab ? 'activeTab' : ''"
@@ -35,12 +35,12 @@
             </v-list-item-content>
           </v-list-item>
           <v-divider
-            :key="item.id"
+            :key="'divider-' + item.id"
             :thickness="10"
             class="my-0"
             color="var(--lc-secondary)"
           ></v-divider>
-        </template>
+        </div>
       </v-list>
     </v-navigation-drawer>
     <div class="bg-light p-5 w-75">
@@ -52,6 +52,7 @@
 </template>
 
 <script>
+import axios from 'axios'
 import ConfiguringJobs from './ConfiguringJobs.vue';
 import JobHistory from './JobHistory.vue';
 import TerminatingJobs from './TerminatingJobs.vue';
@@ -93,14 +94,43 @@ export default {
         type: 'JobHistory',
       },
     ],
-    options: ['DLAP', 'Bar', 'Fizz', 'Buzz'],
-    selectedOption: 'DLAP',
+    schemaOptions: [],
+    selectedOption: 'public',
     selectedTab: 0,
   }),
+  watch: {
+    async selectedOption(){
+      try {
+        const payload = {
+          schema_name: this.selectedOption
+        };
+
+        const response = await axios.post('http://127.0.0.1:8000/schema-names/', payload);
+        console.log(response.data);
+      } catch (error) {
+        console.error(error);
+      }
+      window.location.reload();
+    }
+  },
   methods: {
     handleClick(item) {
       this.selectedTab = item.id;
     },
+    async getSchemaNames() {
+      axios.get('http://127.0.0.1:8000/schema-names/')
+      .then(response => {
+        // Handle the response data here
+        this.schemaOptions=response.data.schema_names;
+      })
+      .catch(error => {
+        // Handle any errors that occur
+        console.error(error);
+      });
+    }
+  },
+  created() {
+    this.getSchemaNames();
   },
 };
 </script>

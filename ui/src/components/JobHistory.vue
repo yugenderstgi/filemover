@@ -4,7 +4,12 @@
     <div class="d-flex flex-column">
       <span class="fs-3 header">Job History</span>
       <div class="d-flex flex-column">
-        <v-stepper v-model="el" flat>
+        <v-stepper v-model="currenStep" flat non-linear>
+          <v-stepper-header>
+            <v-stepper-step editable step="1"> Job Event List </v-stepper-step>
+            <v-divider></v-divider>
+            <v-stepper-step step="2"> {{ stepperHeading }} </v-stepper-step>
+          </v-stepper-header>
           <v-stepper-items>
             <v-stepper-content step="1">
               <v-data-table
@@ -14,9 +19,13 @@
                 :search="search"
                 :items="items"
                 item-key="jobId"
+                :loading="isLoading"
+                loading-text="Loading..."
+                hide-rows-per-page
+                hide-default-footer
               >
                 <template v-slot:item.action="{ item }">
-                  <button class="small smallBtn" @click="getActions(item.id)">
+                  <button class="small smallBtn" @click="getActions(item)">
                     View Action
                   </button>
                 </template>
@@ -29,6 +38,11 @@
                 :headers="jobDescHeader"
                 :items="jobDescItems"
                 item-key="jobId"
+                :search="search"
+                :loading="isLoading"
+                loading-text="Loading..."
+                hide-rows-per-page
+                hide-default-footer
                 ><template v-slot:item.action="{ item }">
                   <button
                     class="small smallBtn"
@@ -65,54 +79,63 @@ export default {
   components: { RightPanel },
   data() {
     return {
-      el: 1,
+      currenStep: 1,
+      search: '',
       headers: [
         {
           text: 'Job Event ID',
           value: 'id',
-          sortable: false,
+          sortable: true,
           filterable: false,
+          width: '10%',
         },
         {
           text: 'Job ID',
           value: 'fm_job_id',
-          sortable: false,
+          sortable: true,
           filterable: false,
+          width: '5%',
         },
         {
           text: 'Job Name',
           value: 'job_name',
-          sortable: false,
+          sortable: true,
           filterable: false,
+          width: '10%',
         },
         {
           text: 'Job Duration',
           value: 'job_duration',
-          sortable: false,
+          sortable: true,
           filterable: false,
+          width: '10%',
         },
         {
           text: 'Job Start',
           value: 'start_tms',
-          sortable: false,
+          sortable: true,
           filterable: false,
+          width: '25%',
         },
         {
           text: 'Job End',
           value: 'end_tms',
-          sortable: false,
+          sortable: true,
           filterable: false,
+          width: '25%',
         },
         {
           text: 'Status',
           value: 'status',
-          sortable: false,
+          sortable: true,
           filterable: false,
+          width: '10%',
         },
         {
           value: 'action',
-          sortable: false,
+          sortable: true,
           filterable: false,
+          width: '10%',
         },
       ],
       items: [],
@@ -129,51 +152,67 @@ export default {
           value: 'id',
           sortable: false,
           filterable: false,
+          width: '5%',
         },
         {
           text: 'Action ID',
           value: 'fm_action_id',
           sortable: false,
           filterable: false,
+          width: '5%',
         },
         {
           text: 'Action Type',
           value: 'transform_name',
           sortable: false,
           filterable: false,
+          width: '25%',
         },
         {
           text: 'Action Duration',
           value: 'action_duration',
           sortable: false,
           filterable: false,
+          width: '10%',
         },
         {
           text: 'Action Start',
           value: 'start_tms',
           sortable: false,
           filterable: false,
+          width: '15%',
         },
         {
           text: 'Action End',
           value: 'end_tms',
           sortable: false,
           filterable: false,
+          width: '15%',
         },
         {
           text: 'Status',
           value: 'status',
           sortable: false,
           filterable: false,
+          width: '10%',
         },
         {
           value: 'action',
           sortable: false,
           filterable: false,
+          width: '15%',
         },
       ],
       jobDescItems: [],
+      stepperHeading: 'Finantxn Replicate',
     };
+  },
+  watch: {
+    currentStep() {
+      if (this.currentStep == 1) {
+        this.stepperHeading = 'Etran Payment Activity Load';
+      }
+    },
   },
   methods: {
     openDrawer() {
@@ -192,14 +231,18 @@ export default {
         this.dateRange = `${startDate.toLocaleDateString()} - ${endDate.toLocaleDateString()}`;
       }
     },
-    async getActions(jobEventId) {
-      this.currentJobEventId = jobEventId;
+    async getActions(jobEvent) {
+      this.currentJobEventId = jobEvent.id;
+      this.isLoading = true;
+
       await axios(
-        `http://127.0.0.1:8000/fmjobactionevent/?fm_job_event_id=${jobEventId}`
+        `http://127.0.0.1:8000/fmjobactionevent/?fm_job_event_id=${jobEvent.id}`
       ).then((res) => {
         this.jobDescItems = res.data;
+        this.isLoading = false;
       });
-      this.el = 2;
+      this.currenStep = 2;
+      this.stepperHeading = jobEvent.job_name;
     },
     async getResolvedActionParams(actionId) {
       await axios
@@ -211,6 +254,7 @@ fm_job_event_id=${this.currentJobEventId}&fm_job_action_event_id=${actionId}`
         .then((response) => {
           this.actionParams = response.data[0].resolved_action_parms.params;
           console.log(this.actionParams);
+          this.isLoading = false;
         })
         .catch((error) => {
           console.error(error);
@@ -219,14 +263,16 @@ fm_job_event_id=${this.currentJobEventId}&fm_job_action_event_id=${actionId}`
     },
   },
   created() {
+    this.isLoading = true;
     axios
       .get('http://127.0.0.1:8000/fmjobevent/')
       .then((response) => {
         this.items = response.data;
-        console.log(this.item);
+        this.isLoading = false;
       })
       .catch((error) => {
         console.error(error);
+        this.isLoading = false;
       });
   },
   computed: {
@@ -237,3 +283,16 @@ fm_job_event_id=${this.currentJobEventId}&fm_job_action_event_id=${actionId}`
   },
 };
 </script>
+
+<style scoped>
+.customTableHeader >>> thead.v-data-table-header tr {
+  border-bottom: 2px solid var(--lc-primary);
+  font-size: 1.5rem;
+}
+.customTableHeader >>> .v-data-table-header th {
+  border-bottom: 2px solid var(--lc-primary);
+  font-size: 1rem;
+  color: var(--lc-primary) !important;
+  /* Add more styles as needed */
+}
+</style>
