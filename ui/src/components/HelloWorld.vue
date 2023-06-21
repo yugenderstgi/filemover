@@ -17,6 +17,7 @@
 </template>
 
 <script>
+import axios from 'axios';
 import {
   SideMenuPage,
   Dropdown,
@@ -29,18 +30,13 @@ import JobTermination from './JobTermination.vue';
 export default {
   components: { SideMenuPage, Dropdown },
   computed: {
-    selectedSchema() {
-      return this.schemaOptions[0];
-    },
-  },
-  data() {
-    return {
-      schemaOptions: ['dlap', 'dsf', 'dsf'],
-      options: [
+    options() {
+      return [
         {
           textKey: 'Job Configuration',
           icon: 'fa-memo-circle-info',
           component: ConfiguringJobs,
+          props: this.selectedSchema,
         },
         {
           textKey: 'Job Execution',
@@ -57,8 +53,49 @@ export default {
           icon: 'fa-clock-rotate-left',
           component: JobHistory,
         },
-      ],
+      ]
+    },
+},
+  watch: {
+    async selectedSchema() {
+      try {
+        const payload = {
+          schema_name: this.selectedSchema,
+        };
+
+        const response = await axios.post(
+          'http://127.0.0.1:8000/schema-names/',
+          payload
+        );
+        console.log(response.data);
+      } catch (error) {
+        console.error(error);
+      }
+      // window.location.reload();
+    },
+  },
+  data() {
+    return {
+      selectedSchema: 'public',
+      schemaOptions: [],
     };
+  },
+  methods: {
+    async getSchemaNames() {
+      axios
+        .get('http://127.0.0.1:8000/schema-names/')
+        .then((response) => {
+          // Handle the response data here
+          this.schemaOptions = response.data.schema_names;
+        })
+        .catch((error) => {
+          // Handle any errors that occur
+          console.error(error);
+        });
+    },
+  },
+  created() {
+    this.getSchemaNames();
   },
 };
 </script>
