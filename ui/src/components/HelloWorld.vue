@@ -72,19 +72,19 @@ export default {
       {
         id: 0,
         icon: 'mdi-email',
-        title: 'Configuring Jobs',
+        title: 'Job Configuration',
         type: 'ConfiguringJobs',
       },
       {
         id: 1,
         icon: 'mdi-account-supervisor-circle',
-        title: 'Triggering Jobs',
+        title: 'Job Execution',
         type: 'TriggeringJobs',
       },
       {
         id: 2,
         icon: 'mdi-clock-start',
-        title: 'Terminating Jobs',
+        title: 'Job Termination',
         type: 'TerminatingJobs',
       },
       {
@@ -97,20 +97,27 @@ export default {
     schemaOptions: [],
     selectedOption: 'public',
     selectedTab: 0,
+    isFirstTime: true,
   }),
   watch: {
     async selectedOption(){
+   
+      if (this.isFirstTime) {
+        this.isFirstTime = false;
+        return;
+      }
       try {
         const payload = {
           schema_name: this.selectedOption
         };
 
         const response = await axios.post('http://127.0.0.1:8000/schema-names/', payload);
+
         console.log(response.data);
       } catch (error) {
         console.error(error);
       }
-      window.location.reload();
+       window.location.reload();
     }
   },
   methods: {
@@ -122,6 +129,7 @@ export default {
       .then(response => {
         // Handle the response data here
         this.schemaOptions=response.data.schema_names;
+        this.selectedOption = response.data.current_schema;
       })
       .catch(error => {
         // Handle any errors that occur

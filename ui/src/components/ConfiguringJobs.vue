@@ -24,7 +24,7 @@
       <v-stepper-header>
         <v-stepper-step editable step="1"> FM Jobs(200) </v-stepper-step>
         <v-divider></v-divider>
-        <v-stepper-step step="2">
+        <v-stepper-step v-if="currentStep===2" step="2">
           {{ stepperHeading }}
         </v-stepper-step>
       </v-stepper-header>
@@ -221,15 +221,8 @@ export default {
       actionParams: {},
       ogActionParams: {},
       isLoading: Boolean,
-      stepperHeading: 'Etran Payment Activity Load',
+      stepperHeading: '',
     };
-  },
-  watch: {
-    currentStep(){
-      if(this.currentStep==1){
-        this.stepperHeading= 'Etran Payment Activity Load'
-      }
-    },
   },
   methods: {
     getEtranPayment(job) {

@@ -36,7 +36,7 @@
           <v-stepper-header class="shadow-none">
             <v-stepper-step editable step="1"> Job Event List </v-stepper-step>
             <v-divider></v-divider>
-            <v-stepper-step step="2"> {{ stepperHeading }} </v-stepper-step>
+            <v-stepper-step v-if="currenStep===2" step="2"> {{ stepperHeading }} </v-stepper-step>
           </v-stepper-header>
           <v-stepper-items>
             <v-stepper-content class="pt-2" step="1">
@@ -232,15 +232,8 @@ export default {
         },
       ],
       jobDescItems: [],
-      stepperHeading: 'Finantxn Replicate',
+      stepperHeading: '',
     };
-  },
-  watch: {
-    currentStep() {
-      if (this.currentStep == 1) {
-        this.stepperHeading = 'Etran Payment Activity Load';
-      }
-    },
   },
   methods: {
     openDrawer() {
