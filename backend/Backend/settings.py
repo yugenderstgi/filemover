@@ -32,7 +32,7 @@ ALLOWED_HOSTS = []
 CORS_ORIGIN_ALLOW_ALL = False
 
 CORS_ORIGIN_WHITELIST = [
-    "http://localhost:8080",  # Update with your Vue.js application's URL
+    "http://localhost:8081",  # Update with your Vue.js application's URL
     # Other allowed origins...
 ]
 
