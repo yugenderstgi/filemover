@@ -17,7 +17,8 @@
           <v-data-table
             class="customTable"
             :headers="fmHeaders"
-            :items="fmJobs"
+            :items="$attrs.fmJobs"
+            :loading="true"
             item-key="id"
             :search="search"
             dense
@@ -109,21 +110,26 @@
         </v-card></v-dialog
       >
     </v-overlay>
+    <snack-message :snackObj="snackObj"></snack-message>
   </div>
 </template>
 <script>
-import { SearchBar } from '@lenders-cooperative/los-app-ui-component-lib';
+import {
+  SearchBar,
+  SnackMessage,
+  SnackMixin,
+} from '@lenders-cooperative/los-app-ui-component-lib';
 import RightPanel from './RightPanel.vue';
 import axios from 'axios';
 export default {
-  components: { SearchBar, RightPanel },
+  components: { SearchBar, RightPanel, SnackMessage },
+  mixins: [SnackMixin],
   data() {
     return {
       el: 1,
       search: '',
       openRightPanel: false,
       openDialog: false,
-      fmJobs: [],
       jobActions: [],
       fmHeaders: [
         {
@@ -186,7 +192,6 @@ export default {
           sortable: false,
           filterable: false,
         },
-
         {
           value: 'action',
           sortable: false,
@@ -228,19 +233,29 @@ export default {
       this.openRightPanel = true;
       this.currentActionId = actionId;
     },
-  },
-  created() {
-    // fetches all fm jobs
-    axios
-      .get('http://127.0.0.1:8000/fmjobs')
-      .then((response) => {
-        this.fmJobs = response.data;
-        console.log(this.item);
-      })
-      .catch((error) => {
-        console.error(error);
+    handleSave() {
+      const url = `http://127.0.0.1:8000/fmaction/${this.currentActionId}/update_action_params/`;
+      const data = {
+        action_parms: {
+          params: {
+            transform_params: {
+              ...this.actionParams.transform_params,
+            },
+          },
+        },
+      };
+      axios.put(url, data).then((response) => {
+        // Handle the response data
+        console.log('Response:', response.data);
+        this.handleSnack({
+          snackMsg: 'Updated Transform params !',
+          snackType: 'success',
+        });
       });
+      this.openDialog = false;
+    },
   },
+ 
 };
 </script>
 <style scoped>
@@ -251,7 +266,6 @@ export default {
 >>> .v-data-footer {
   justify-content: flex-end;
 }
-
 >>> .v-stepper__content {
   padding: 0 !important;
 }

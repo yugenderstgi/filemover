@@ -36,7 +36,7 @@ export default {
           textKey: 'Job Configuration',
           icon: 'fa-memo-circle-info',
           component: ConfiguringJobs,
-          props: this.selectedSchema,
+          props:{fmJobs: this.fmJobs},
         },
         {
           textKey: 'Job Execution',
@@ -67,6 +67,7 @@ export default {
           'http://127.0.0.1:8000/schema-names/',
           payload
         );
+        this.getFmJobs();
         console.log(response.data);
       } catch (error) {
         console.error(error);
@@ -78,6 +79,7 @@ export default {
     return {
       selectedSchema: 'public',
       schemaOptions: [],
+      fmJobs: [],
     };
   },
   methods: {
@@ -93,9 +95,17 @@ export default {
           console.error(error);
         });
     },
+    getFmJobs(){
+      axios.get('http://127.0.0.1:8000/fmjobs/').then((res) =>{
+        this.fmJobs = res.data;
+      }
+      ).catch((err) =>{
+        console.log(err)})
+    },
   },
   created() {
     this.getSchemaNames();
+    this.getFmJobs();
   },
 };
 </script>
