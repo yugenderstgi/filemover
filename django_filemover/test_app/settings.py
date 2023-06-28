@@ -35,7 +35,7 @@ CORS_ORIGIN_WHITELIST = [
     "http://localhost:8081",  # Update with your Vue.js application's URL
     # Other allowed origins...
 ]
-
+# Application definition
 
 
 # Allow CORS on all paths
@@ -65,23 +65,21 @@ CORS_ALLOW_HEADERS = [
 ]
 
 
-
 SESSION_ENGINE = "django.contrib.sessions.backends.cache"
 
-# Application definition
 
 INSTALLED_APPS = [
-    "rest_framework",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    "api",
-    "django_filters",
     "django.contrib.postgres",
+    "rest_framework",
+    "django_filters",
     "corsheaders",
+    "filemover",
 ]
 
 
@@ -96,7 +94,7 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
-ROOT_URLCONF = "Backend.urls"
+ROOT_URLCONF = "test_app.urls"
 
 TEMPLATES = [
     {
@@ -114,7 +112,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = "Backend.wsgi.application"
+WSGI_APPLICATION = "test_app.wsgi.application"
 
 
 # Database
@@ -131,21 +129,6 @@ DATABASES = {
             "options": "-c search_path=public",
         },
     },
-    # "default": {
-    #     "ENGINE": "django.db.backends.postgresql_psycopg2",
-    #     "NAME": "basicproject",
-    #     "USER": "postgres",
-    #     "PASSWORD": "201800567",
-    #     "HOST": "localhost",
-    # },
-    # 'etran': {
-    # clumio-demo.cluster-crupz7wxq03u.ap-south-1.rds.amazonaws.com
-    #     'ENGINE': 'django.db.backends.postgresql_psycopg2',
-    #     'NAME': 'basicproject',
-    #     'USER':'postgres',
-    #     'PASSWORD':'201800567', postgres123
-    #     'HOST':'localhost'
-    # }
 }
 
 

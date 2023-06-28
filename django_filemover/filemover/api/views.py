@@ -1,23 +1,16 @@
+from django.db import connections
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from django.db import connections
-from django.http import HttpResponse
 
-from .models import (
+from ..models import (
     FilemoverAction,
     FilemoverJob,
     FilemoverJobActionEvent,
     FilemoverJobEvent,
 )
-from .serializers import (
-    FilemoverActionSerializer,
-    FilemoverJobActionEventSerializer,
-    FilemoverJobEventSerializer,
-    FilemoverJobSerializer,
-)
-from .utils import (
+from ..utils import (
     FilemoverActionFilter,
     FilemoverJobActionEventFilter,
     FilemoverJobEventFilter,
@@ -25,40 +18,77 @@ from .utils import (
     convert_dict_to_xml,
     convert_dicttoxml_CDATA,
 )
+from .serializers import (
+    FilemoverActionSerializer,
+    FilemoverJobActionEventSerializer,
+    FilemoverJobEventSerializer,
+    FilemoverJobSerializer,
+)
+
 
 class SchemaNamesViewSet(viewsets.ViewSet):
-    current_schema={'key':'public'}
+    """
+    Viewset for retrieving and updating database schema names.
+
+    Args:
+        viewsets.ViewSet: The base viewset class provided by Django REST Framework.
+
+    Returns:
+        Response: The response containing the retrieved schema names or indicating a successful update.
+
+    Attributes:
+        current_schema (dict): The dictionary representing the current schema, with the default value set to {"key": "public"}.
+    """
+
+    current_schema = {"key": "public"}
+
     def list(self, request):
-        with connections['default'].cursor() as cursor:
+        """
+        Retrieve a list of available schema names.
+
+        Returns:
+            Response: The response containing the schema names and the current schema.
+        """
+        with connections["default"].cursor() as cursor:
             cursor.execute("SELECT DISTINCT table_schema FROM information_schema.tables where table_name like 'fm_job'")
             schema_names = [row[0] for row in cursor.fetchall()]
-        
-        
-        return Response({'schema_names': schema_names,'current_schema':SchemaNamesViewSet.current_schema['key']})
+        return Response({"schema_names": schema_names, "current_schema": SchemaNamesViewSet.current_schema["key"]})
 
     def create(self, request):
-        selected_schema = request.data.get('schema_name')
-        print("selected_schema",selected_schema)
-        
-        SchemaNamesViewSet.current_schema['key']=selected_schema
-        # Set the selected schema in the session
-        # request.session['selected_schema'] = selected_schema
-        # request.session.save()
-        # print("000",request.session['selected_schema'])
-        # Update the database connection settings
-        db_settings = connections['default'].settings_dict
-        db_settings['OPTIONS']['options'] = f"-c search_path={selected_schema}"
+        """
+        Update the current database schema.
+
+        Args:
+            request (rest_framework.request.Request): The request object containing the selected schema name in the request data.
+
+        Returns:
+            Response: A response indicating a successful update of the database schema.
+        """
+        selected_schema = request.data.get("schema_name")
+
+        SchemaNamesViewSet.current_schema["key"] = selected_schema
+
+        db_settings = connections["default"].settings_dict
+        db_settings["OPTIONS"]["options"] = f"-c search_path={selected_schema}"
 
         # Return a response indicating successful update
         return Response("Database schema updated successfully.")
-    
-    
+
 
 class FilemoverJobViewSet(viewsets.ReadOnlyModelViewSet):
-    """_summary_
+    """
+    Viewset for retrieving read-only file mover jobs.
 
     Args:
-        viewsets (_type_): _description_
+        viewsets.ReadOnlyModelViewSet: The base viewset class provided by Django REST Framework.
+
+    Attributes:
+        queryset (django.db.models.QuerySet): The queryset of FilemoverJob instances, ordered by descending dml_ts.
+        serializer_class (serializers.Serializer): The serializer class used for serializing FilemoverJob instances.
+        filter_backends (list): The list of filter backends to be applied for filtering the queryset. In this case,
+                                DjangoFilterBackend is added to the list.
+        filterset_class (type): The filterset class used for filtering the queryset.
+        pagination_class (type): The pagination class used for pagination of the results.
     """
 
     queryset = FilemoverJob.objects.all().order_by("-dml_ts")
@@ -67,16 +97,14 @@ class FilemoverJobViewSet(viewsets.ReadOnlyModelViewSet):
         DjangoFilterBackend
     ]  # this line to specify the filter backend and the DjangoFilterBackend is added to the filter_backends list
     filterset_class = FilemoverJobFilter
+    # pagination_class = CustomPagination -> we  can use pagination from django-lc-utils/paginator.py
 
 
 class FilemoverActionViewSet(viewsets.ReadOnlyModelViewSet):
-    """_summary_
-
-    Args:
-        viewsets (_type_): _description_
-
-    Returns:
-        _type_: _description_
+    """
+    Viewset for retrieving read-only filemover actions.
+    Attributes:
+        queryset (django.db.models.QuerySet): The queryset of FilemoverActions instances, ordered by descending dml_ts.
     """
 
     queryset = FilemoverAction.objects.all().order_by("-dml_ts")
@@ -87,7 +115,7 @@ class FilemoverActionViewSet(viewsets.ReadOnlyModelViewSet):
     filterset_class = FilemoverActionFilter
 
     @action(detail=True, methods=["PUT", "PATCH"])
-    def update_action_params(self, request, pk=None):
+    def action_params(self, request, pk=None):
         """
         This method is called to updated Action Params Values.
         """
@@ -119,10 +147,10 @@ class FilemoverActionViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 class FilemoverJobEventViewSet(viewsets.ReadOnlyModelViewSet):
-    """_summary_
-
-    Args:
-        viewsets (_type_): _description_
+    """
+    Viewset for retrieving read-only filemover Job Events.
+    Attributes:
+        queryset (django.db.models.QuerySet): The queryset of FilemoverJobEvent instances, ordered by descending start_tms.
     """
 
     queryset = FilemoverJobEvent.objects.all().order_by("-start_tms")
@@ -134,10 +162,10 @@ class FilemoverJobEventViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 class FilemoverJobActionEventViewSet(viewsets.ReadOnlyModelViewSet):
-    """_summary_
-
-    Args:
-        viewsets (_type_): _description_
+    """
+    Viewset for retrieving read-only filemover Job Action Events.
+    Attributes:
+        queryset (django.db.models.QuerySet): The queryset of FilemoverJobActionEvent instances, ordered by descending start_tms.
     """
 
     queryset = FilemoverJobActionEvent.objects.all().order_by("-start_tms")

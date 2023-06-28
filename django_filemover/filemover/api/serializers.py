@@ -1,23 +1,23 @@
-import logging
-
 from rest_framework import serializers
 
-from .models import (
+from ..models import (
     FilemoverAction,
     FilemoverJob,
     FilemoverJobActionEvent,
     FilemoverJobEvent,
 )
-from .utils import action_parms_val, transform_name_val
-
-LOGGER = logging.getLogger("root")
+from ..utils import action_parms_val, transform_name_val
 
 
 class FilemoverJobSerializer(serializers.ModelSerializer):
-    """_summary_
+    """
+    Serializer for the FilemoverJob model.
 
     Args:
-        serializers (_type_): _description_
+        serializers.ModelSerializer: The base serializer class provided by Django REST Framework.
+
+    Returns:
+        dict: A dictionary representing the serialized FilemoverJob instance.
     """
 
     class Meta:
@@ -26,13 +26,14 @@ class FilemoverJobSerializer(serializers.ModelSerializer):
 
 
 class FilemoverActionSerializer(serializers.ModelSerializer):
-    """_summary_
+    """
+    Serializer for the FilemoverAction model.
 
     Args:
-        serializers (_type_): _description_
+        serializers.ModelSerializer: The base serializer class provided by Django REST Framework.
 
     Returns:
-        _type_: _description_
+        dict: A dictionary representing the serialized FilemoverAction instance.
     """
 
     transform_name = serializers.SerializerMethodField()
@@ -54,8 +55,15 @@ class FilemoverActionSerializer(serializers.ModelSerializer):
 
     def get_action_parms(self, instance):
         """
-        This method converts action_parms from  XML format to nested dictionary
+        This method converts action_parms from XML format to a nested dictionary.
+
+        Args:
+            instance (FilemoverAction): The FilemoverAction instance being serialized.
+
+        Returns:
+            dict: A nested dictionary representing the deserialized action_parms.
         """
+
         xml_data = instance.action_parms
         type = instance.action_type
         dict_data = action_parms_val(xml_data, type)
@@ -63,20 +71,27 @@ class FilemoverActionSerializer(serializers.ModelSerializer):
 
     def get_transform_name(self, obj):
         """
-        This method  returns transform_name  from action_parms
+        This method returns the transform_name from action_parms.
+
+        Args:
+            obj (FilemoverAction): The FilemoverAction instance being serialized.
+
+        Returns:
+            str: The transform_name extracted from the action_parms.
         """
         name = transform_name_val(obj.action_parms)
         return name
 
 
 class FilemoverJobEventSerializer(serializers.ModelSerializer):
-    """_summary_
+    """
+    Serializer for the FilemoverJobEvent model.
 
-    Args:
-        serializers (_type_): _description_
+        Args:
+        serializers.ModelSerializer: The base serializer class provided by Django REST Framework.
 
     Returns:
-        _type_: _description_
+        dict: A dictionary representing the serialized FilemoverJobEvent instance.
     """
 
     job_name = serializers.ReadOnlyField(source="fm_job.name")
@@ -88,20 +103,27 @@ class FilemoverJobEventSerializer(serializers.ModelSerializer):
 
     def get_job_duration(self, obj):
         """
-        calculates job duration between start time and end time
+        Calculates the duration of a job based on the start time and end time.
+
+        Args:
+            obj: The instance of the job for which to calculate the duration.
+
+        Returns:
+            str: A string representation of the job duration.
         """
         job_duration = obj.end_tms - obj.start_tms
         return str(job_duration)
 
 
 class FilemoverJobActionEventSerializer(serializers.ModelSerializer):
-    """_summary_
+    """
+    Serializer for the FilemoverJobActionEvent model.
 
-    Args:
-        serializers (_type_): _description_
+        Args:
+        serializers.ModelSerializer: The base serializer class provided by Django REST Framework.
 
     Returns:
-        _type_: _description_
+        dict: A dictionary representing the serialized FilemoverJobActionEvent instance.
     """
 
     transform_name = serializers.SerializerMethodField()
@@ -127,14 +149,26 @@ class FilemoverJobActionEventSerializer(serializers.ModelSerializer):
 
     def get_action_duration(self, obj):
         """
-        get action duration
+        Calculates the duration of a action based on the start time and end time.
+
+        Args:
+            obj: The instance of the action for which to calculate the duration.
+
+        Returns:
+            str: A string representation of the action duration.
         """
         action_duration = obj.end_tms - obj.start_tms
         return str(action_duration)
 
     def get_resolved_action_parms(self, instance):
         """
-        get resolved action params
+        This method converts resolved_action_parms from XML format to a nested dictionary.
+
+        Args:
+            instance (FilemoverJobActionEvent): The FilemoverJobActionEvent instance being serialized.
+
+        Returns:
+            dict: A nested dictionary representing the deserialized resolved_action_parms.
         """
         xml_data = instance.resolved_action_parms
         type = instance.fm_action.action_type
@@ -143,7 +177,13 @@ class FilemoverJobActionEventSerializer(serializers.ModelSerializer):
 
     def get_transform_name(self, obj):
         """
-        This method  returns transform_name  from resolved_action_parms
+        This method returns the transform_name from resolved_action_parms.
+
+        Args:
+            obj (FilemoverAction): The FilemoverJobActionEvent instance being serialized.
+
+        Returns:
+            str: The transform_name extracted from the resolved_action_parms.
         """
         name = transform_name_val(obj.resolved_action_parms)
         return name

@@ -37,10 +37,6 @@ class FilemoverActionFilter(filters.FilterSet):
         return queryset.filter(action_parms__icontains=value)
 
     class Meta:
-        """
-        The DjangoFilterBackend will handle filtering based on the filter fields defined in the filterset_class.
-        """
-
         model = FilemoverAction
         fields = ["fm_job", "id", "action_type"]  # This fields related to Model Class
 
@@ -81,7 +77,7 @@ class FilemoverJobActionEventFilter(filters.FilterSet):
 
 def transform_name_val(xmldata):
     """
-    This method  returns transform_name  from action_parms
+    This method converts action_params from xml to dict and it  returns transform_name  from action_parms.
     """
     try:
         if xmldata:
