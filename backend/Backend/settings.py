@@ -36,7 +36,7 @@ CORS_ORIGIN_WHITELIST = [
     # Other allowed origins...
 ]
 
-CORS_ALLOW_ALL_ORIGINS = False
+
 
 # Allow CORS on all paths
 CORS_URLS_REGEX = r"^.*$"
