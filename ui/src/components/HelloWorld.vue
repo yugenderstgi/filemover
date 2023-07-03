@@ -97,7 +97,7 @@ export default {
     },
     getFmJobs(){
       axios.get('http://127.0.0.1:8000/fmjobs/').then((res) =>{
-        this.fmJobs = res.data;
+        this.fmJobs = res.data.results;
       }
       ).catch((err) =>{
         console.log(err)})

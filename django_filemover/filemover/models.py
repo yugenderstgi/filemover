@@ -49,6 +49,7 @@ class FilemoverAction(models.Model):
     precondition_env = models.JSONField(null=True, blank=True)
 
     class Meta:
+        managed = False
         db_table = "fm_action"
 
 

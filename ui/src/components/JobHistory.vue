@@ -183,7 +183,7 @@ export default {
       await axios(
         `http://127.0.0.1:8000/fmjobactionevent/?fm_job_event_id=${jobEventId}`
       ).then((res) => {
-        this.jobDescItems = res.data;
+        this.jobDescItems = res.data.results;
       });
       this.el = 2;
     },
@@ -195,7 +195,7 @@ fm_job_event_id=${this.currentJobEventId}&fm_job_action_event_id=${actionId}`
         )
 
         .then((response) => {
-          this.actionParams = response.data[0].resolved_action_parms.params;
+          this.actionParams = response.data.results[0].resolved_action_parms.params;
           console.log(this.actionParams);
         })
         .catch((error) => {
@@ -208,7 +208,7 @@ fm_job_event_id=${this.currentJobEventId}&fm_job_action_event_id=${actionId}`
     axios
       .get('http://127.0.0.1:8000/fmjobevent/')
       .then((response) => {
-        this.items = response.data;
+        this.items = response.data.results;
         console.log(this.item);
       })
       .catch((error) => {

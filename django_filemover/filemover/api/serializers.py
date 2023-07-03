@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from datetime import datetime
 
 from ..models import (
     FilemoverAction,
@@ -20,9 +21,19 @@ class FilemoverJobSerializer(serializers.ModelSerializer):
         dict: A dictionary representing the serialized FilemoverJob instance.
     """
 
+    dml_ts = serializers.SerializerMethodField()
+
     class Meta:
         model = FilemoverJob
         fields = ["id", "name", "description", "dml_ts"]
+
+    def get_dml_ts(self, instance):
+        """
+        This method converts time zone from "%Y-%m-%dT%H:%M:%S.%fZ" to %Y-%m-%dT%H:%M:%S
+        """
+        timestamp = instance.dml_ts
+        formatted_timestamp = timestamp.strftime("%Y-%m-%d %H:%M:%S")
+        return formatted_timestamp
 
 
 class FilemoverActionSerializer(serializers.ModelSerializer):
@@ -38,6 +49,7 @@ class FilemoverActionSerializer(serializers.ModelSerializer):
 
     transform_name = serializers.SerializerMethodField()
     action_parms = serializers.SerializerMethodField()
+    dml_ts = serializers.SerializerMethodField()
 
     class Meta:
         model = FilemoverAction
@@ -52,6 +64,14 @@ class FilemoverActionSerializer(serializers.ModelSerializer):
             "precondition_env",
         ]
         # exclude=['fm_job_id']
+
+    def get_dml_ts(self, instance):
+        """
+        This method converts time zone from "%Y-%m-%dT%H:%M:%S.%fZ" to %Y-%m-%dT%H:%M:%S
+        """
+        timestamp = instance.dml_ts
+        formatted_timestamp = timestamp.strftime("%Y-%m-%d %H:%M:%S")
+        return formatted_timestamp
 
     def get_action_parms(self, instance):
         """
@@ -96,10 +116,28 @@ class FilemoverJobEventSerializer(serializers.ModelSerializer):
 
     job_name = serializers.ReadOnlyField(source="fm_job.name")
     job_duration = serializers.SerializerMethodField()
+    start_tms = serializers.SerializerMethodField()
+    end_tms = serializers.SerializerMethodField()
 
     class Meta:
         model = FilemoverJobEvent
         fields = ["id", "fm_job_id", "job_name", "job_duration", "start_tms", "end_tms", "status", "src_ip"]
+
+    def get_start_tms(self, instance):
+        """
+        This method converts time zone from "%Y-%m-%dT%H:%M:%S.%fZ" to %Y-%m-%dT%H:%M:%S
+        """
+        timestamp = instance.start_tms
+        formatted_timestamp = timestamp.strftime("%Y-%m-%d %H:%M:%S")
+        return formatted_timestamp
+
+    def get_end_tms(self, instance):
+        """
+        This method converts time zone from "%Y-%m-%dT%H:%M:%S.%fZ" to %Y-%m-%dT%H:%M:%S
+        """
+        timestamp = instance.end_tms
+        formatted_timestamp = timestamp.strftime("%Y-%m-%d %H:%M:%S")
+        return formatted_timestamp
 
     def get_job_duration(self, obj):
         """
@@ -131,6 +169,8 @@ class FilemoverJobActionEventSerializer(serializers.ModelSerializer):
     action_type = serializers.ReadOnlyField(source="fm_action_id.action_type")
     action_duration = serializers.SerializerMethodField()
     resolved_action_parms = serializers.SerializerMethodField()
+    start_tms = serializers.SerializerMethodField()
+    end_tms = serializers.SerializerMethodField()
 
     class Meta:
         model = FilemoverJobActionEvent
@@ -146,6 +186,22 @@ class FilemoverJobActionEventSerializer(serializers.ModelSerializer):
             "status",
             "resolved_action_parms",
         ]
+
+    def get_start_tms(self, instance):
+        """
+        This method converts time zone from "%Y-%m-%dT%H:%M:%S.%fZ" to %Y-%m-%dT%H:%M:%S
+        """
+        timestamp = instance.start_tms
+        formatted_timestamp = timestamp.strftime("%Y-%m-%d %H:%M:%S")
+        return formatted_timestamp
+
+    def get_end_tms(self, instance):
+        """
+        This method converts time zone from "%Y-%m-%dT%H:%M:%S.%fZ" to %Y-%m-%dT%H:%M:%S
+        """
+        timestamp = instance.end_tms
+        formatted_timestamp = timestamp.strftime("%Y-%m-%d %H:%M:%S")
+        return formatted_timestamp
 
     def get_action_duration(self, obj):
         """

@@ -1,6 +1,7 @@
 from django.db import connections
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets
+from rest_framework.pagination import PageNumberPagination
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
@@ -24,6 +25,12 @@ from .serializers import (
     FilemoverJobEventSerializer,
     FilemoverJobSerializer,
 )
+
+
+class CustomPagination(PageNumberPagination):
+    page_size = 5
+    page_size_query_param = "page_size"
+    max_page_size = 100
 
 
 class SchemaNamesViewSet(viewsets.ViewSet):
@@ -97,7 +104,7 @@ class FilemoverJobViewSet(viewsets.ReadOnlyModelViewSet):
         DjangoFilterBackend
     ]  # this line to specify the filter backend and the DjangoFilterBackend is added to the filter_backends list
     filterset_class = FilemoverJobFilter
-    # pagination_class = CustomPagination -> we  can use pagination from django-lc-utils/paginator.py
+    pagination_class = CustomPagination  # -> we  can use pagination from django-lc-utils/paginator.py
 
 
 class FilemoverActionViewSet(viewsets.ReadOnlyModelViewSet):
@@ -113,6 +120,7 @@ class FilemoverActionViewSet(viewsets.ReadOnlyModelViewSet):
         DjangoFilterBackend
     ]  # this line to specify the filter backend and the DjangoFilterBackend is added to the filter_backends list
     filterset_class = FilemoverActionFilter
+    pagination_class = CustomPagination
 
     @action(detail=True, methods=["PUT", "PATCH"])
     def action_params(self, request, pk=None):
@@ -159,6 +167,7 @@ class FilemoverJobEventViewSet(viewsets.ReadOnlyModelViewSet):
         DjangoFilterBackend
     ]  # this line to specify the filter backend and the DjangoFilterBackend is added to the filter_backends list
     filterset_class = FilemoverJobEventFilter
+    pagination_class = CustomPagination
 
 
 class FilemoverJobActionEventViewSet(viewsets.ReadOnlyModelViewSet):
@@ -174,3 +183,4 @@ class FilemoverJobActionEventViewSet(viewsets.ReadOnlyModelViewSet):
         DjangoFilterBackend
     ]  # this line to specify the filter backend and the DjangoFilterBackend is added to the filter_backends list
     filterset_class = FilemoverJobActionEventFilter
+    pagination_class = CustomPagination

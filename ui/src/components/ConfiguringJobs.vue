@@ -211,7 +211,7 @@ export default {
         .get(`http://127.0.0.1:8000/fmaction/?fm_job_id=${fmJobId}`)
         .then((response) => {
           this.currentJobId = fmJobId;
-          this.jobActions = response.data;
+          this.jobActions = response.data.results;
         })
         .catch((error) => {
           console.error(error);
@@ -224,7 +224,7 @@ export default {
           `http://127.0.0.1:8000/fmaction/?fm_job_id=${this.currentJobId}&fm_action_id=${actionId}`
         )
         .then((response) => {
-          this.actionParams = response.data[0].action_parms.params;
+          this.actionParams = response.data.results[0].action_parms.params;
           this.ogActionParams = this.actionParams;
         })
         .catch((error) => {
@@ -234,7 +234,7 @@ export default {
       this.currentActionId = actionId;
     },
     handleSave() {
-      const url = `http://127.0.0.1:8000/fmaction/${this.currentActionId}/update_action_params/`;
+      const url = `http://127.0.0.1:8000/fmaction/${this.currentActionId}/action_params/`;
       const data = {
         action_parms: {
           params: {
@@ -255,7 +255,7 @@ export default {
       this.openDialog = false;
     },
   },
- 
+
 };
 </script>
 <style scoped>
