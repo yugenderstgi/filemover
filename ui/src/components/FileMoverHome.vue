@@ -34,36 +34,39 @@ export default {
       return [
         {
           textKey: 'Job Configuration',
-          icon: 'fa-memo-circle-info',
+          //icon: 'fa-memo-circle-info',
+          icon: 'mdi mdi-database-cog',
           component: ConfiguringJobs,
           props:{fmJobs: this.fmJobs},
         },
         {
           textKey: 'Job Execution',
-          icon: 'fa-sensor-triangle-exclaimation',
+          icon: 'mdi mdi-progress-clock',
           component: JobExecution,
         },
         {
           textKey: 'Job Termination',
-          icon: 'fa-users-rectangle',
+          // icon: 'fa-users-rectangle',
+          icon: 'mdi mdi-alert-octagon-outline',
           component: JobTermination,
         },
         {
           textKey: 'Job History',
-          icon: 'fa-clock-rotate-left',
+          // icon: 'fa-clock-rotate-left',
+          icon: 'mdi mdi-history',
           component: JobHistory,
         },
       ]
     },
 },
   watch: {
-    async selectedSchema() {
+    selectedSchema() {
       try {
         const payload = {
           schema_name: this.selectedSchema,
         };
 
-        const response = await axios.post(
+        const response = axios.post(
           'http://127.0.0.1:8000/schema-names/',
           payload
         );
@@ -84,7 +87,7 @@ export default {
   },
   methods: {
     async getSchemaNames() {
-      axios
+      await axios
         .get('http://127.0.0.1:8000/schema-names/')
         .then((response) => {
           // Handle the response data here
@@ -114,7 +117,9 @@ export default {
   background-color: var(--lc-primary);
 }
 >>> .side-menu {
+
   height: 100vh !important;
+
 }
 
 >>> .card-background {

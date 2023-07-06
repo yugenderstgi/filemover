@@ -1,22 +1,67 @@
 <!-- eslint-disable -->
 <template>
   <v-main>
-    <div class="d-flex flex-column">
-      <span class="fs-3 header">Job History</span>
+    <div class="d-flex flex-column px-4">
+      <div class="d-flex justify-content-between mt-4">
+      <span class="header fs-3">Job History</span>
+      
+      <SearchBar
+        v-model="search"
+        :action="true"
+        :placeholder="
+          'Search by Job Name'
+        "
+      ></SearchBar>
+      <!-- <p>search value is : {{ search }}</p> -->
+    </div>
+    <div class="datepicker" id="breadcrumb" v-if="!showActionsBreadcrumb">
+      <DatePicker  v-model="selectedDates.start" ></DatePicker>
+      <!-- <p>Start Date: {{ selectedDates.start}}</p> -->
+      <DatePicker v-model="selectedDates.end"></DatePicker>
+      <!-- <p>End Date: {{ selectedDates.end }}</p> -->
+    </div>
+    <!-- <div class="btnContainer" v-if="showActionsBreadcrumb">
+      <button type="button" id="btn1" class="jobEventList">Job Event List </button>
+      <button type="button" id="btn2" class="jobActionList">{{currentJobName}}</button>
+    </div>
+       -->
+       
+
       <div class="d-flex flex-column">
         <v-stepper v-model="el" flat>
+          <div class="stepcontainer" v-if="showActionsBreadcrumb">
+      <v-stepper-header>
+            <v-stepper-step editable step="1" class="step1"> Job Event List
+            </v-stepper-step>
+            <v-stepper-step editable v-if="el==2" step="2" class="step2">
+              {{ currentJobName }} </v-stepper-step>
+          </v-stepper-header></div>
           <v-stepper-items>
             <v-stepper-content step="1">
               <v-data-table
+                id = "jobEventTable"
+                loading="true"
                 class="mt-5 pt-5 customTable"
                 :headers="headers"
                 dense
-                :search="search"
                 :items="items"
                 item-key="jobId"
               >
+              <template v-slot:header.status="{ header }">
+              <div class="column-header">
+                <span>{{ header.text }}</span>
+                <v-icon class="filter-icon" @click="showFilter = !showFilter">mdi-filter-outline</v-icon>
+                <div v-if="showFilter" class="filter-box">
+          <label v-for="option in filterOptions" :key="option.value">
+            <input type="checkbox" :value="option.value" v-model="selectedFilters">
+            {{ option.label }}
+          </label>
+          <button class="applyButton" @click="applyFilters('jobEvents')">Apply</button>
+        </div>
+              </div>
+				</template>
                 <template v-slot:item.action="{ item }">
-                  <button class="small smallBtn" @click="getActions(item.id)">
+                  <button class="small smallBtn" @click="getActions(item.id,item.job_name)">
                     View Action
                   </button>
                 </template>
@@ -29,7 +74,24 @@
                 :headers="jobDescHeader"
                 :items="jobDescItems"
                 item-key="jobId"
-                ><template v-slot:item.action="{ item }">
+                >  
+                   <template v-slot:header.status="{ header }">
+              <div class="column-header">
+                <span>{{ header.text }}</span>
+                <v-icon class="filter-icon" @click="showFilter = !showFilter">mdi-filter-outline</v-icon>
+                <div v-if="showFilter" class="filter-box">
+          <label v-for="option in filterOptions" :key="option.value">
+            <input type="checkbox" :value="option.value" v-model="selectedFilters">
+            {{ option.label }}
+          </label>
+          <button class="applyButton" @click="applyFilters('jobActions')">Apply</button>
+        </div>
+              </div>
+				</template>
+
+                
+                
+                <template v-slot:item.action="{ item }">
                   <button
                     class="small smallBtn"
                     @click="getResolvedActionParams(item.id)"
@@ -38,21 +100,30 @@
                   </button>
                 </template></v-data-table
               >
+
+
             </v-stepper-content>
           </v-stepper-items>
         </v-stepper>
-        <v-overlay :value="drawer" color="var(--lc-primary)" opacity="0.75"
-          ><RightPanel
-            :drawer="drawer"
-            :action-params="actionParams"
-            from="jobHistory"
-            @close="
-              () => {
-                drawer = !drawer;
-              }
-            "
-          ></RightPanel>
-        </v-overlay>
+
+
+        <v-overlay :value="openRightPanel" color="var(--lc-primary)" opacity="0.75"
+      ><RightPanel
+        :open-right-panel="openRightPanel"
+        :action-params="actionParams"
+        @close="
+          () => {
+            openRightPanel = !openRightPanel;
+          }
+        "
+        @openDialog="
+          () => {
+            openRightPanel = false;
+            openDialog = true;
+          }
+        "
+      ></RightPanel>
+    </v-overlay>
       </div>
     </div>
   </v-main>
@@ -60,40 +131,68 @@
 <script>
 import RightPanel from './RightPanel.vue';
 import axios from 'axios';
+import {DatePicker,
+  SearchBar,
+  //BreadCrumb
+} from '@lenders-cooperative/los-app-ui-component-lib';
 
 export default {
-  components: { RightPanel },
+  components: { RightPanel,
+    DatePicker,
+    SearchBar,
+    //BreadCrumb
+   },
   data() {
     return {
+      search : '',
+      openRightPanel: false,
+      currentStep : 1,
+      currentJobName:'',
+      showJobTable:true,
+      showActionsBreadcrumb :false,
       el: 1,
+      showFilter :false,
+      filterOptions: [
+        { label: 'Fail', value: 'fail' },
+        { label: 'Pass', value: 'pass' },
+        { label: 'Skipped', value: 'skipped' },
+      ],
+      selectedFilters: [],
       headers: [
         {
           text: 'Job Event ID',
           value: 'id',
+          filterable: false,
         },
         {
           text: 'Job ID',
           value: 'fm_job_id',
+          filterable: false,
         },
         {
           text: 'Job Name',
           value: 'job_name',
+          filterable: false,
         },
         {
           text: 'Job Duration',
           value: 'job_duration',
+          filterable: false,
         },
         {
           text: 'Job Start',
           value: 'start_tms',
+          filterable: false,
         },
         {
           text: 'Job End',
           value: 'end_tms',
+          filterable: false,
         },
         {
           text: 'Status',
           value: 'status',
+          filterable: false,
         },
         {
           value: 'action',
@@ -105,8 +204,11 @@ export default {
       drawer: false,
       dates: null,
       datePickerOpen: false,
-      selectedDates: null,
-      dateRange: '',
+      selectedDates: {
+        start:null,
+        end:null
+      },
+      dateRange: '',    
       currentJobEventId: '',
       actionParams: {},
       jobDescHeader: [
@@ -123,10 +225,10 @@ export default {
           filterable: false,
         },
         {
-          text: 'Action Type',
+          text: 'Transform Name',
           value: 'transform_name',
-          sortable: false,
-          filterable: false,
+          // sortable: false,
+          // filterable: false,
         },
         {
           text: 'Action Duration',
@@ -149,8 +251,8 @@ export default {
         {
           text: 'Status',
           value: 'status',
-          sortable: false,
-          filterable: false,
+          // sortable: false,
+          // filterable: false,
         },
         {
           value: 'action',
@@ -160,6 +262,30 @@ export default {
       ],
       jobDescItems: [],
     };
+  },
+  watch: {
+    selectedDates: {
+      handler(newVal) {
+
+        if (newVal.start && newVal.end) {
+          this.updateDateRange();
+        }
+        else if(!newVal.start && !newVal.end){
+          this.fetchData();
+        }
+      },
+      deep: true
+    },
+    search(newSearchValue){
+      if(newSearchValue && newSearchValue.length > 4){
+        let url = `http://127.0.0.1:8000/fmjobevent/?job_name=${newSearchValue}`
+        console.log('URL is : ',url)
+        this.searchByJobName(url);
+      }
+      else if(newSearchValue.length==0){
+        this.fetchData()
+      }
+    }
   },
   methods: {
     openDrawer() {
@@ -171,23 +297,86 @@ export default {
     closeDatePicker() {
       this.datePickerOpen = false;
     },
+    modifyDate(date){
+      console.log("modifyDate method")
+      console.log(" Date before change: ",date)
+      const syear = date.getFullYear();
+      const smonth = String(date.getMonth() + 1).padStart(2, "0");
+      const sday = String(date.getDate()).padStart(2, "0");
+      date = `${syear}-${smonth}-${sday}`;
+      console.log("Date after change: ",date)
+      return date
+
+    },
     updateDateRange() {
       if (this.selectedDates) {
-        const startDate = this.selectedDates.start;
-        const endDate = this.selectedDates.end;
-        this.dateRange = `${startDate.toLocaleDateString()} - ${endDate.toLocaleDateString()}`;
+        //start date modification
+        console.log("updateDateRange method")
+        let startDate = this.selectedDates.start;
+        startDate = this.modifyDate(startDate)
+        let endDate = this.selectedDates.end;
+        endDate = this.modifyDate(endDate)
+        let url = `http://127.0.0.1:8000/fmjobevent/?start_tms=${startDate}&end_tms=${endDate}`;
+        this.callApiWithDate(url);
+
       }
     },
-    async getActions(jobEventId) {
+    fetchData(){
+      console.log("Text to be searched : ",this.search)
+      console.log("Fetch Data API - STARTED")
+      axios
+      .get('http://127.0.0.1:8000/fmjobevent/')
+      .then((response) => {
+        this.items = response.data.results;
+        // console.log(this.items);
+      })
+      .catch((error) => {
+        console.error(error);
+      });
+      console.log("Fetch Data API - ENDED")
+    }
+    ,
+    async callApiWithDate(url){
+      console.log("callApiWithDate API - STARTED")
+      await axios(url)
+      .then((response) => {
+        this.items = response.data.results;
+        console.log(this.item);
+      })
+      .catch((error) => {
+        console.error(error);
+      });
+      console.log("callApiWithDate API - ENDED")
+    },
+    async searchByJobName(url){
+      console.log("searchByJobName API - STARTED")
+      await axios(url)
+      .then((response) => {
+        this.items = response.data.results;
+        // console.log("Response Data : ",this.items);
+      })
+      .catch((error) => {
+        console.error(error);
+      });
+      console.log("searchByJobName API - ENDED")
+    },
+
+
+    async getActions(jobEventId,jobname) {
+      this.currentJobName = jobname;
+      this.currentStep = 2;
+      this.showActionsBreadcrumb = true;
+      this.showJobTable = false;
       this.currentJobEventId = jobEventId;
       await axios(
         `http://127.0.0.1:8000/fmjobactionevent/?fm_job_event_id=${jobEventId}`
       ).then((res) => {
-        this.jobDescItems = res.data.results;
+        this.jobDescItems = res.data;
       });
       this.el = 2;
     },
     async getResolvedActionParams(actionId) {
+      console.log("getResolvedActionParams - STARTED")
       await axios
         .get(
           `http://127.0.0.1:8000/fmjobactionevent/?
@@ -202,19 +391,62 @@ fm_job_event_id=${this.currentJobEventId}&fm_job_action_event_id=${actionId}`
           console.error(error);
         });
       this.drawer = true;
+      this.openRightPanel = true;
+      console.log("getResolvedActionParams - ENDED")
     },
+    changeShowTableValue(){
+      console.log("Job table value : ",this.showJobTable)
+      this.showJobTable = !this.showJobTable
+      console.log("Job table value : ",this.showJobTable)
+    },
+    applyFilters(source) {
+      console.log('Selected Filters:', this.selectedFilters);
+      if (source=='jobEvents'){
+        const url = `http://127.0.0.1:8000/fmjobevent/?status=${this.selectedFilters}`
+        this.searchEventsByStatus(url);
+      }
+      else if(source=='jobActions'){
+        const url = `http://127.0.0.1:8000/fmjobactionevent/?fm_job_event_id=${this.currentJobEventId}&status=${this.selectedFilters}`
+        console.log("Status Type URL is : ",url)
+        this.searchActionsByStatus(url);
+      }
+      
+      
+    },
+    async searchActionsByStatus(url) {
+      console.log("searchActionsByStatus API - STARTED")
+      await axios(url)
+        .then((response) => {
+          // this.$attrs.fmJobs = response.data;
+          this.jobDescItems = response.data.results;
+          // console.log("Response Data : ",this.items);
+        })
+        .catch((error) => {
+          console.error(error);
+        });
+      console.log("searchActionsByStatus API - ENDED")
+    },
+    async searchEventsByStatus(url) {
+      console.log("searchEventsByStatus API - STARTED")
+      await axios(url)
+        .then((response) => {
+          // this.$attrs.fmJobs = response.data;
+          this.items = response.data.results;
+          // console.log("Response Data : ",this.items);
+        })
+        .catch((error) => {
+          console.error(error);
+        });
+      console.log("searchEventsByStatus API - ENDED")
+    }
   },
   created() {
-    axios
-      .get('http://127.0.0.1:8000/fmjobevent/')
-      .then((response) => {
-        this.items = response.data.results;
-        console.log(this.item);
-      })
-      .catch((error) => {
-        console.error(error);
-      });
+    
+    if(!this.search){
+    this.fetchData()
+    }
   },
+
 };
 </script>
 <style scoped>
@@ -231,4 +463,56 @@ fm_job_event_id=${this.currentJobEventId}&fm_job_action_event_id=${actionId}`
   color: var(--lc-primary) !important;
   font-size: 0.875rem !important;
 }
+.container {
+    display: inline-block;
+  }
+.datepicker{
+  margin-top: 40px;
+  margin-right: 1000px;
+}
+/* .datepicker > * {
+    margin-right: 250px;
+  } */
+
+.stepcontainer{
+  display: flex;
+  justify-content: space-between;  
+  margin-top: 60px;
+  border: none;
+  background-color: var(--lc-text-light);
+}
+.step1{
+  width: 200px;
+  height: 50px;
+  background-color: #4673ae;
+  clip-path:  polygon(0% 0%, 88% 0%, 100% 50%, 88% 100%, 0% 100%);
+  padding: 0.5rem 1rem 0.5rem 1rem;
+  text-align: center;
+  margin-right: 30px;
+  font-size: large;
+  color : var(--lc-text-light) !important;
+}
+
+.step2{
+  margin-right: 30px;
+  width: 200px;
+  height: 50px;
+  background-color: #4673ae;
+  clip-path:  polygon(0% 0%, 88% 0%, 100% 50%, 88% 100%, 0% 100%);
+  padding: 0.5rem 1rem 0.5rem 1rem;
+  text-align: center;
+  font-size: large;
+
+}
+.filter-icon {
+  margin-left: 5px;
+  color: var(--lc-primary);
+}
+.filter-box {
+  margin-top: 10px;
+}
+.applyButton{
+margin-left: 10px;
+}
+
 </style>

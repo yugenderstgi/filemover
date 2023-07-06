@@ -68,6 +68,7 @@ export default {
   height: 100% !important;
   width: 55% !important;
   background-color: var(--lc-bg-light);
+  /* background-color: var(--lc-background-color); */
 }
 .customTable {
   background-color: var(--lc-bg-light);

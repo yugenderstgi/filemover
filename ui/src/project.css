@@ -28,7 +28,13 @@
   --v-accent-base: var(--lc-action) !important;
   --v-success-base: var(--lc-success) !important;
   --v-error-base: var(--lc-danger) !important;
+  
 }
+/*.deep{
+  /* clip-path: polygon(0% 0%, 100% 50%, 80% 100%, 0% 100%, 15% 50%, 80% 0%); */
+  /* clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%); 
+}*/
+
 .btn-white {
   border-bottom: 2px solid var(--lc-primary);
   width: max-content;
@@ -48,3 +54,4 @@
   border: 2px solid var(--lc-primary);
   border-radius: 2px;
 }
+
