@@ -4,16 +4,11 @@
       <div class="d-flex flex-column p-3">
         <h3>Admin Console</h3>
         <span class="small">Select Schema</span>
-        <Dropdown
-          v-model="selectedSchema"
-          :items="schemaOptions"
-          background-color="var(--lc-secondary)"
-          hide-details
-          dark
-          solo
-        ></Dropdown>
-      </div> </template
-  ></SideMenuPage>
+        <Dropdown v-model="selectedSchema" :items="schemaOptions" background-color="var(--lc-secondary)" hide-details dark
+          solo @change="changeSchema"></Dropdown>
+      </div>
+    </template>
+  </SideMenuPage>
 </template>
 
 <script>
@@ -37,7 +32,10 @@ export default {
           //icon: 'fa-memo-circle-info',
           icon: 'mdi mdi-database-cog',
           component: ConfiguringJobs,
-          props:{fmJobs: this.fmJobs},
+          props: {
+            // fmJobsProps: this.fmJobs,
+            schema: this.schema
+          },
         },
         {
           textKey: 'Job Execution',
@@ -55,39 +53,63 @@ export default {
           // icon: 'fa-clock-rotate-left',
           icon: 'mdi mdi-history',
           component: JobHistory,
+          props: {
+            // fmJobsProps: this.fmJobs,
+            schema: this.schema
+          },
         },
       ]
     },
-},
-  watch: {
-    selectedSchema() {
+  },
+  // watch: {
+  //   selectedSchema() {
+  //     try {
+  //       const payload = {
+  //         schema_name: this.selectedSchema,
+  //       };
+
+  //       const response = axios.post(
+  //         'http://127.0.0.1:8000/schema-names/',
+  //         payload
+  //       );
+  //       console.log(response.data)
+  //       this.getFmJobs();
+
+  //     } catch (error) {
+  //       console.error(error);
+  //     }
+  //     // window.location.reload();
+  //   },
+  // },
+  data() {
+    return {
+      page: 1,
+      pageSize: 4,
+      selectedSchema: 'public',
+      schemaOptions: [],
+      // fmJobs: [],
+      schema: {}
+    };
+  },
+  methods: {
+    async changeSchema() {
       try {
         const payload = {
           schema_name: this.selectedSchema,
         };
-
-        const response = axios.post(
+        const response = await axios.post(
           'http://127.0.0.1:8000/schema-names/',
           payload
         );
-        this.getFmJobs();
-        console.log(response.data);
+        this.schema = response
+        // this.getFmJobs(this.pageSize, this.page);
+
       } catch (error) {
         console.error(error);
       }
-      // window.location.reload();
     },
-  },
-  data() {
-    return {
-      selectedSchema: 'public',
-      schemaOptions: [],
-      fmJobs: [],
-    };
-  },
-  methods: {
-    async getSchemaNames() {
-      await axios
+    getSchemaNames() {
+      axios
         .get('http://127.0.0.1:8000/schema-names/')
         .then((response) => {
           // Handle the response data here
@@ -98,31 +120,36 @@ export default {
           console.error(error);
         });
     },
-    getFmJobs(){
-      axios.get('http://127.0.0.1:8000/fmjobs/').then((res) =>{
-        this.fmJobs = res.data.results;
-      }
-      ).catch((err) =>{
-        console.log(err)})
-    },
+    // getFmJobs(pageSize, page) {
+    //   const url = `http://127.0.0.1:8000/fmjobs/?page=${page}&page_size=${pageSize}`
+    //   axios.get(url).then((res) => {
+    //     console.log(res.data)
+    //     this.fmJobs = res.data.results;
+    //   }
+    //   ).catch((err) => {
+    //     console.log(err)
+    //   })
+    // },
   },
   created() {
     this.getSchemaNames();
-    this.getFmJobs();
+    // this.getFmJobs(this.pageSize, this.page);
+    this.changeSchema();
   },
 };
 </script>
 <style scoped>
->>> .primary {
+>>>.primary {
   background-color: var(--lc-primary);
 }
->>> .side-menu {
+
+>>>.side-menu {
 
   height: 100vh !important;
 
 }
 
->>> .card-background {
+>>>.card-background {
   margin: 2rem !important;
   border-radius: 0;
   box-shadow: none !important;

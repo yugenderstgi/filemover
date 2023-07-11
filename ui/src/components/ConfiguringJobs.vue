@@ -6,7 +6,7 @@
       <SearchBar v-model="search" :action="true" :placeholder="el === 2 ? 'Search by Transform Name' : 'Search by FM Jobs'
         "></SearchBar>
     </div>
-
+    <!-- <div>{{schema}}</div> -->
     <v-stepper v-model="el" flat>
       <div class="stepcontainer">
         <v-stepper-header>
@@ -18,9 +18,15 @@
       </div>
       <v-stepper-items>
         <v-stepper-content step="1">
-          <v-data-table id="jobTable" class="customTable" :headers="fmHeaders" :items="fmJobs" :loading="true"
-            item-key="id" dense>
-            <template v-slot:item.action="{ item }">
+          <!-- <v-data-table id="jobTable" class="customTable" :headers="fmHeaders" :search="search" :items="fmJobs"
+            :loading="true" :footer-props="{
+              'items-per-page-options': [4],
+              'disable-items-per-page': true,
+            }" :options.sync="pagination" item-key="id" dense> -->
+          <v-data-table id="jobTable" class="customTable" :headers="fmHeaders" :search="search" :items="fmJobs"
+            :server-items-length="pagination.totalItems" :options.sync="pagination" @update:options="getFmJobs"
+            :loading="true" item-key="id" dense>
+            <template v-slot:[`item.action`]="{ item }">
               <button class="small btn-white" @click="getFmJobsActions(item.id, item.name)">
                 View Action
               </button>
@@ -28,22 +34,23 @@
           </v-data-table>
         </v-stepper-content>
         <v-stepper-content step="2">
-          <v-data-table :headers="jobActionHeaders" :items="jobActions" class="customTable" dense item-key="id">
-            <template v-slot:header.action_type="{ header }">
+          <v-data-table :headers="jobActionHeaders" :items="jobActions" :search="search" class="customTable" dense
+            item-key="id">
+            <template v-slot:[`header.action_type`]="{ header }">
               <div class="column-header">
                 <span>{{ header.text }}</span>
 
                 <v-icon class="filter-icon" @click="showFilter = !showFilter">mdi-filter-outline</v-icon>
                 <div v-if="showFilter" class="filter-box">
-          <label v-for="option in filterOptions" :key="option.value">
-            <input type="checkbox" :value="option.value" v-model="selectedFilters">
-            {{ option.label }}
-          </label>
-          <button class="applyButton" @click="applyFilters">Apply</button>
-        </div>
+                  <label v-for="option in filterOptions" :key="option.value">
+                    <input type="checkbox" :value="option.value" v-model="selectedFilters">
+                    {{ option.label }}
+                  </label>
+                  <button class="applyButton" @click="applyFilters">Apply</button>
+                </div>
               </div>
             </template>
-            <template v-slot:item.action="{ item }">
+            <template v-slot:[`item.action`]="{ item }">
               <button class="small btn-white" @click="getActionParams(item.id)">
                 View Action Params
               </button>
@@ -53,12 +60,12 @@
     </v-stepper>
     <v-overlay :value="openRightPanel" color="var(--lc-primary)" opacity="0.75">
       <RightPanel :open-right-panel="openRightPanel" :action-params="actionParams" from="configuringJobs" @close="() => {
-          openRightPanel = !openRightPanel;
-        }
+        openRightPanel = !openRightPanel;
+      }
         " @openDialog="() => {
-      openRightPanel = false;
-      openDialog = true;
-    }
+    openRightPanel = false;
+    openDialog = true;
+  }
     "></RightPanel>
     </v-overlay>
     <v-overlay :value="openDialog" color="var(--lc-primary)" opacity="0.75">
@@ -80,9 +87,9 @@
           </div>
           <div class="d-flex justify-content-end gap-3 mt-3 mr-10">
             <button class="btn-white" @click="() => {
-                actionParams = ogActionParams;
-                openDialog = false;
-              }
+              actionParams = ogActionParams;
+              openDialog = false;
+            }
               ">
               Cancel
             </button>
@@ -110,15 +117,26 @@ export default {
 
   },
   mixins: [SnackMixin],
+  props: ['schema'],
   data() {
     return {
       // fmJobsData: this.$attrs.fmJobs,
       fmJobs: [],
+      pagination: {
+        page: 1,
+        itemsPerPage: 5,
+        totalItems: 0
+      },
+      // pagination: {
+      // page: 1, // Initial page number
+      // itemsPerPage: 4, // Number of items to display per page
+      // totalItems: 0 // Set the totalItems based on the initial data length
+      // }
       currentJobName: '',
       currentJobId: '',
       search: '',
       showActionsBreadcrumb: false,
-      showFilter :false,
+      showFilter: false,
       filterOptions: [
         { label: 'Transform', value: 'transform' },
         { label: 'Unzip', value: 'Unzip' }
@@ -211,6 +229,10 @@ export default {
       }
 
     },
+    schema() {
+      this.getFmJobs();
+    },
+
     search(newSearchValue) {
       if (newSearchValue && newSearchValue.length > 3 && !this.showActionsBreadcrumb) {
         let url = `http://127.0.0.1:8000/fmjobs/?job_name=${newSearchValue}`
@@ -231,13 +253,35 @@ export default {
       }
     }
   },
-  computed:{
-    fmJobsData(){
-      return this.fmJobs=this.$attrs.fmJobs;
-    }
-  },
+  // mounted: {
+  //   fmJobs(){
+  //     console.log(this.props)
+  //   }
+  // },
 
   methods: {
+    // getFmJobs() {
+    //   axios.get(this.url).then((res) => {
+    //     console.log(res.data)
+    //     this.fmJobs = res.data.results;
+    //     this.url = res.data.next;
+    //   }
+    //   ).catch((err) => {
+    //     console.log(err)
+    //   })
+    // },
+    getFmJobs() {
+      const url = `http://127.0.0.1:8000/fmjobs/?page=${this.pagination.page}`
+      axios.get(url).then((res) => {
+        this.fmJobs = res.data.results;
+        this.pagination.totalItems = res.data.count
+
+      }
+      ).catch((err) => {
+        console.log(err)
+      })
+    },
+
     getFmJobsActions(fmJobId, fmjobName) {
       // fetches actions for that particular job
       console.log("Item Id : ", fmJobId)
@@ -249,21 +293,19 @@ export default {
       axios
         .get(`http://127.0.0.1:8000/fmaction/?fm_job_id=${fmJobId}`)
         .then((response) => {
-          this.currentJobId = fmJobId;
           this.jobActions = response.data.results;
         })
         .catch((error) => {
           console.error(error);
         });
     },
-    async getActionParams(actionId) {
+    getActionParams(actionId) {
       // fetches action params for particular action
-      await axios
+      axios
         .get(
           `http://127.0.0.1:8000/fmaction/?fm_job_id=${this.currentJobId}&fm_action_id=${actionId}`
         )
         .then((response) => {
-
           // this.actionParams = response.data[0].action_parms.params;
           this.actionParams = response.data.results[0].action_parms.params;
           this.ogActionParams = this.actionParams;
@@ -295,9 +337,9 @@ export default {
       });
       this.openDialog = false;
     },
-    async searchByJobName(url) {
+    searchByJobName(url) {
       console.log("searchByJobName API - STARTED")
-      await axios(url)
+      axios(url)
         .then((response) => {
           // this.$attrs.fmJobs = response.data;
           this.fmJobs = response.data.results;
@@ -308,9 +350,9 @@ export default {
         });
       console.log("searchByJobName API - ENDED")
     },
-    async searchByTransformName(url) {
+    searchByTransformName(url) {
       console.log("searchByTransformName API - STARTED")
-      await axios(url)
+      axios(url)
         .then((response) => {
           // this.$attrs.fmJobs = response.data;
           this.fmJobs = response.data.results;
@@ -321,23 +363,18 @@ export default {
         });
       console.log("searchByTransformName API - ENDED")
     },
-    getFmJobs() {
-      axios.get('http://127.0.0.1:8000/fmjobs/').then((res) => {
-        this.fmJobs = res.data.results;
-      }
-      ).catch((err) => {
-        console.log(err)
-      })
-    },
+    // getFmJobs() {
+    //   this.fmJobs = this.fmJobsProps;
+    // },
     applyFilters() {
       console.log('Selected Filters:', this.selectedFilters);
       const url = `http://127.0.0.1:8000/fmaction/?fm_job_id=${this.currentJobId}&action_type=${this.selectedFilters}`
-      console.log("Action Type URL is : ",url)
+      console.log("Action Type URL is : ", url)
       this.searchByActionType(url);
     },
-    async searchByActionType(url) {
+    searchByActionType(url) {
       console.log("searchByActionType API - STARTED")
-      await axios(url)
+      axios(url)
         .then((response) => {
           // this.$attrs.fmJobs = response.data;
           this.jobActions = response.data.results;
@@ -350,13 +387,8 @@ export default {
     }
   },
   created() {
-    this.getFmJobs()
-
-    // if (!this.search) {
-    //   this.getFmJobs()
-    // }
+    this.getFmJobs();
   }
-
 }
 </script>
 <style scoped>
@@ -366,6 +398,11 @@ export default {
 }
 
 >>>.v-data-footer {
+  justify-content: flex-end;
+}
+
+.footer {
+  display: flex;
   justify-content: flex-end;
 }
 
@@ -400,9 +437,6 @@ export default {
   align-items: center;
   margin-top: 60px;
   margin-bottom: 60px;
-
-
-
 }
 
 .stepcontainer {
@@ -459,13 +493,16 @@ export default {
   display: flex;
   align-items: center;
 }
+
 .filter-box {
   margin-top: 10px;
 }
-.applyButton{
-margin-left: 10px;
+
+.applyButton {
+  margin-left: 10px;
 }
-.sort-icon{
+
+.sort-icon {
   color: var(--lc-primary);
 }
 </style>

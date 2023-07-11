@@ -1,21 +1,14 @@
 <!-- eslint-disable -->
 <template>
-  <v-main>
-    <div class="d-flex flex-column px-4">
-      <div class="d-flex justify-content-between mt-4">
+  <div class="d-flex flex-column px-4">
+    <div class="d-flex justify-content-between mt-4">
       <span class="header fs-3">Job History</span>
-      
-      <SearchBar
-        v-model="search"
-        :action="true"
-        :placeholder="
-          'Search by Job Name'
-        "
-      ></SearchBar>
+      <SearchBar v-model="search" :action="true" :placeholder="'Search by Job Name'
+        "></SearchBar>
       <!-- <p>search value is : {{ search }}</p> -->
     </div>
-    <div class="datepicker" id="breadcrumb" v-if="!showActionsBreadcrumb">
-      <DatePicker  v-model="selectedDates.start" ></DatePicker>
+    <div class="datepicker" v-if="!showActionsBreadcrumb">
+      <DatePicker v-model="selectedDates.start"></DatePicker>
       <!-- <p>Start Date: {{ selectedDates.start}}</p> -->
       <DatePicker v-model="selectedDates.end"></DatePicker>
       <!-- <p>End Date: {{ selectedDates.end }}</p> -->
@@ -25,133 +18,121 @@
       <button type="button" id="btn2" class="jobActionList">{{currentJobName}}</button>
     </div>
        -->
-       
 
-      <div class="d-flex flex-column">
-        <v-stepper v-model="el" flat>
-          <div class="stepcontainer" v-if="showActionsBreadcrumb">
-      <v-stepper-header>
+
+    <div class="d-flex flex-column">
+      <v-stepper v-model="el" flat>
+        <!-- <div class="stepcontainer" v-if="showActionsBreadcrumb"> -->
+        <div class="stepcontainer">
+
+          <v-stepper-header class="stepper-header">
             <v-stepper-step editable step="1" class="step1"> Job Event List
             </v-stepper-step>
-            <v-stepper-step editable v-if="el==2" step="2" class="step2">
+            <v-stepper-step editable v-if="el == 2" step="2" class="step2">
               {{ currentJobName }} </v-stepper-step>
-          </v-stepper-header></div>
-          <v-stepper-items>
-            <v-stepper-content step="1">
-              <v-data-table
-                id = "jobEventTable"
-                loading="true"
-                class="mt-5 pt-5 customTable"
-                :headers="headers"
-                dense
-                :items="items"
-                item-key="jobId"
-              >
+          </v-stepper-header>
+        </div>
+        <v-stepper-items>
+          <v-stepper-content step="1">
+            <v-data-table id="jobEventTable" loading="true" class="customTable" :headers="headers" :items="items"
+              :search="search" :server-items-length="pagination.totalItems" :options.sync="pagination"
+              @update:options="fetchData" item-key="jobId" dense>
               <template v-slot:header.status="{ header }">
-              <div class="column-header">
-                <span>{{ header.text }}</span>
-                <v-icon class="filter-icon" @click="showFilter = !showFilter">mdi-filter-outline</v-icon>
-                <div v-if="showFilter" class="filter-box">
-          <label v-for="option in filterOptions" :key="option.value">
-            <input type="checkbox" :value="option.value" v-model="selectedFilters">
-            {{ option.label }}
-          </label>
-          <button class="applyButton" @click="applyFilters('jobEvents')">Apply</button>
-        </div>
-              </div>
-				</template>
-                <template v-slot:item.action="{ item }">
-                  <button class="small smallBtn" @click="getActions(item.id,item.job_name)">
-                    View Action
-                  </button>
-                </template>
-              </v-data-table>
-            </v-stepper-content>
-            <v-stepper-content step="2" class="pl-0">
-              <v-data-table
-                class="mt-5 pt-5 customTable mr-10"
-                dense
-                :headers="jobDescHeader"
-                :items="jobDescItems"
-                item-key="jobId"
-                >  
-                   <template v-slot:header.status="{ header }">
-              <div class="column-header">
-                <span>{{ header.text }}</span>
-                <v-icon class="filter-icon" @click="showFilter = !showFilter">mdi-filter-outline</v-icon>
-                <div v-if="showFilter" class="filter-box">
-          <label v-for="option in filterOptions" :key="option.value">
-            <input type="checkbox" :value="option.value" v-model="selectedFilters">
-            {{ option.label }}
-          </label>
-          <button class="applyButton" @click="applyFilters('jobActions')">Apply</button>
-        </div>
-              </div>
-				</template>
-
-                
-                
-                <template v-slot:item.action="{ item }">
-                  <button
-                    class="small smallBtn"
-                    @click="getResolvedActionParams(item.id)"
-                  >
-                    View Resolved Action Params
-                  </button>
-                </template></v-data-table
-              >
+                <div class="column-header">
+                  <span>{{ header.text }}</span>
+                  <v-icon class="filter-icon" @click="showFilter = !showFilter">mdi-filter-outline</v-icon>
+                  <div v-if="showFilter" class="filter-box">
+                    <label v-for="option in filterOptions" :key="option.value">
+                      <input type="checkbox" :value="option.value" v-model="selectedFilters">
+                      {{ option.label }}
+                    </label>
+                    <button class="applyButton" @click="applyFilters('jobEvents')">Apply</button>
+                  </div>
+                </div>
+              </template>
+              <template v-slot:item.action="{ item }">
+                <button class="small smallBtn" @click="getActions(item.id, item.job_name)">
+                  View Action
+                </button>
+              </template>
+            </v-data-table>
+          </v-stepper-content>
+          <v-stepper-content step="2" class="pl-0">
+            <v-data-table class="mt-5 pt-5 customTable mr-10" dense :headers="jobDescHeader" :items="jobDescItems"
+              item-key="jobId">
+              <template v-slot:header.status="{ header }">
+                <div class="column-header">
+                  <span>{{ header.text }}</span>
+                  <v-icon class="filter-icon" @click="showFilter = !showFilter">mdi-filter-outline</v-icon>
+                  <div v-if="showFilter" class="filter-box">
+                    <label v-for="option in filterOptions" :key="option.value">
+                      <input type="checkbox" :value="option.value" v-model="selectedFilters">
+                      {{ option.label }}
+                    </label>
+                    <button class="applyButton" @click="applyFilters('jobActions')">Apply</button>
+                  </div>
+                </div>
+              </template>
 
 
-            </v-stepper-content>
-          </v-stepper-items>
-        </v-stepper>
+
+              <template v-slot:item.action="{ item }">
+                <button class="small smallBtn" @click="getResolvedActionParams(item.id)">
+                  View Resolved Action Params
+                </button>
+              </template></v-data-table>
 
 
-        <v-overlay :value="openRightPanel" color="var(--lc-primary)" opacity="0.75"
-      ><RightPanel
-        :open-right-panel="openRightPanel"
-        :action-params="actionParams"
-        @close="
-          () => {
-            openRightPanel = !openRightPanel;
-          }
-        "
-        @openDialog="
-          () => {
-            openRightPanel = false;
-            openDialog = true;
-          }
-        "
-      ></RightPanel>
-    </v-overlay>
-      </div>
+          </v-stepper-content>
+        </v-stepper-items>
+      </v-stepper>
+
+
+      <v-overlay :value="openRightPanel" color="var(--lc-primary)" opacity="0.75">
+        <RightPanel :open-right-panel="openRightPanel" :action-params="actionParams" @close="() => {
+          openRightPanel = !openRightPanel;
+        }
+          " @openDialog="() => {
+    openRightPanel = false;
+    openDialog = true;
+  }
+    "></RightPanel>
+      </v-overlay>
     </div>
-  </v-main>
+  </div>
 </template>
 <script>
 import RightPanel from './RightPanel.vue';
 import axios from 'axios';
-import {DatePicker,
+import {
+  DatePicker,
   SearchBar,
   //BreadCrumb
 } from '@lenders-cooperative/los-app-ui-component-lib';
 
 export default {
-  components: { RightPanel,
+  components: {
+    RightPanel,
     DatePicker,
     SearchBar,
     //BreadCrumb
-   },
+  },
+  props: ['schema'],
   data() {
     return {
-      search : '',
+      search: '',
+      pagination: {
+        page: 1,
+        itemsPerPage: 5,
+        totalItems: 0
+      },
       openRightPanel: false,
-      currentStep : 1,
-      currentJobName:'',
-      showJobTable:true,
-      showActionsBreadcrumb :false,
+      currentStep: 1,
+      currentJobName: '',
+      showJobTable: true,
+      showActionsBreadcrumb: false,
       el: 1,
-      showFilter :false,
+      showFilter: false,
       filterOptions: [
         { label: 'Fail', value: 'fail' },
         { label: 'Pass', value: 'pass' },
@@ -162,36 +143,43 @@ export default {
         {
           text: 'Job Event ID',
           value: 'id',
+          sortable: false,
           filterable: false,
         },
         {
           text: 'Job ID',
           value: 'fm_job_id',
+          sortable: false,
           filterable: false,
         },
         {
           text: 'Job Name',
           value: 'job_name',
+          sortable: false,
           filterable: false,
         },
         {
           text: 'Job Duration',
           value: 'job_duration',
+          sortable: false,
           filterable: false,
         },
         {
           text: 'Job Start',
           value: 'start_tms',
+          sortable: false,
           filterable: false,
         },
         {
           text: 'Job End',
           value: 'end_tms',
+          sortable: false,
           filterable: false,
         },
         {
           text: 'Status',
           value: 'status',
+          sortable: false,
           filterable: false,
         },
         {
@@ -205,10 +193,10 @@ export default {
       dates: null,
       datePickerOpen: false,
       selectedDates: {
-        start:null,
-        end:null
+        start: null,
+        end: null
       },
-      dateRange: '',    
+      dateRange: '',
       currentJobEventId: '',
       actionParams: {},
       jobDescHeader: [
@@ -227,7 +215,7 @@ export default {
         {
           text: 'Transform Name',
           value: 'transform_name',
-          // sortable: false,
+          sortable: false,
           // filterable: false,
         },
         {
@@ -251,7 +239,7 @@ export default {
         {
           text: 'Status',
           value: 'status',
-          // sortable: false,
+          sortable: false,
           // filterable: false,
         },
         {
@@ -270,22 +258,25 @@ export default {
         if (newVal.start && newVal.end) {
           this.updateDateRange();
         }
-        else if(!newVal.start && !newVal.end){
+        else if (!newVal.start && !newVal.end) {
           this.fetchData();
         }
       },
       deep: true
     },
-    search(newSearchValue){
-      if(newSearchValue && newSearchValue.length > 4){
+    search(newSearchValue) {
+      if (newSearchValue && newSearchValue.length > 4) {
         let url = `http://127.0.0.1:8000/fmjobevent/?job_name=${newSearchValue}`
-        console.log('URL is : ',url)
+        console.log('URL is : ', url)
         this.searchByJobName(url);
       }
-      else if(newSearchValue.length==0){
+      else if (newSearchValue.length == 0) {
         this.fetchData()
       }
-    }
+    },
+    schema() {
+      this.fetchData();
+    },
   },
   methods: {
     openDrawer() {
@@ -297,14 +288,14 @@ export default {
     closeDatePicker() {
       this.datePickerOpen = false;
     },
-    modifyDate(date){
+    modifyDate(date) {
       console.log("modifyDate method")
-      console.log(" Date before change: ",date)
+      console.log(" Date before change: ", date)
       const syear = date.getFullYear();
       const smonth = String(date.getMonth() + 1).padStart(2, "0");
       const sday = String(date.getDate()).padStart(2, "0");
       date = `${syear}-${smonth}-${sday}`;
-      console.log("Date after change: ",date)
+      console.log("Date after change: ", date)
       return date
 
     },
@@ -321,48 +312,48 @@ export default {
 
       }
     },
-    fetchData(){
-      console.log("Text to be searched : ",this.search)
-      console.log("Fetch Data API - STARTED")
+    fetchData() {
       axios
-      .get('http://127.0.0.1:8000/fmjobevent/')
-      .then((response) => {
-        this.items = response.data.results;
-        // console.log(this.items);
-      })
-      .catch((error) => {
-        console.error(error);
-      });
+        .get(`http://127.0.0.1:8000/fmjobevent/?page=${this.pagination.page}`)
+        .then((response) => {
+          this.items = response.data.results;
+          console.log(response.data)
+          this.pagination.totalItems = response.data.count;
+          console.log(this.items);
+        })
+        .catch((error) => {
+          console.error(error);
+        });
       console.log("Fetch Data API - ENDED")
     }
     ,
-    async callApiWithDate(url){
+    async callApiWithDate(url) {
       console.log("callApiWithDate API - STARTED")
       await axios(url)
-      .then((response) => {
-        this.items = response.data.results;
-        console.log(this.item);
-      })
-      .catch((error) => {
-        console.error(error);
-      });
+        .then((response) => {
+          this.items = response.data.results;
+          console.log(this.item);
+        })
+        .catch((error) => {
+          console.error(error);
+        });
       console.log("callApiWithDate API - ENDED")
     },
-    async searchByJobName(url){
+    async searchByJobName(url) {
       console.log("searchByJobName API - STARTED")
       await axios(url)
-      .then((response) => {
-        this.items = response.data.results;
-        // console.log("Response Data : ",this.items);
-      })
-      .catch((error) => {
-        console.error(error);
-      });
+        .then((response) => {
+          this.items = response.data.results;
+          // console.log("Response Data : ",this.items);
+        })
+        .catch((error) => {
+          console.error(error);
+        });
       console.log("searchByJobName API - ENDED")
     },
 
 
-    async getActions(jobEventId,jobname) {
+    async getActions(jobEventId, jobname) {
       this.currentJobName = jobname;
       this.currentStep = 2;
       this.showActionsBreadcrumb = true;
@@ -371,7 +362,8 @@ export default {
       await axios(
         `http://127.0.0.1:8000/fmjobactionevent/?fm_job_event_id=${jobEventId}`
       ).then((res) => {
-        this.jobDescItems = res.data;
+        console.log(res.data)
+        this.jobDescItems = res.data.results;
       });
       this.el = 2;
     },
@@ -379,8 +371,7 @@ export default {
       console.log("getResolvedActionParams - STARTED")
       await axios
         .get(
-          `http://127.0.0.1:8000/fmjobactionevent/?
-fm_job_event_id=${this.currentJobEventId}&fm_job_action_event_id=${actionId}`
+          `http://127.0.0.1:8000/fmjobactionevent/?fm_job_event_id=${this.currentJobEventId}&fm_job_action_event_id=${actionId}`
         )
 
         .then((response) => {
@@ -394,24 +385,22 @@ fm_job_event_id=${this.currentJobEventId}&fm_job_action_event_id=${actionId}`
       this.openRightPanel = true;
       console.log("getResolvedActionParams - ENDED")
     },
-    changeShowTableValue(){
-      console.log("Job table value : ",this.showJobTable)
+    changeShowTableValue() {
+      console.log("Job table value : ", this.showJobTable)
       this.showJobTable = !this.showJobTable
-      console.log("Job table value : ",this.showJobTable)
+      console.log("Job table value : ", this.showJobTable)
     },
     applyFilters(source) {
       console.log('Selected Filters:', this.selectedFilters);
-      if (source=='jobEvents'){
+      if (source == 'jobEvents') {
         const url = `http://127.0.0.1:8000/fmjobevent/?status=${this.selectedFilters}`
         this.searchEventsByStatus(url);
       }
-      else if(source=='jobActions'){
+      else if (source == 'jobActions') {
         const url = `http://127.0.0.1:8000/fmjobactionevent/?fm_job_event_id=${this.currentJobEventId}&status=${this.selectedFilters}`
-        console.log("Status Type URL is : ",url)
+        console.log("Status Type URL is : ", url)
         this.searchActionsByStatus(url);
       }
-      
-      
     },
     async searchActionsByStatus(url) {
       console.log("searchActionsByStatus API - STARTED")
@@ -441,10 +430,7 @@ fm_job_event_id=${this.currentJobEventId}&fm_job_action_event_id=${actionId}`
     }
   },
   created() {
-    
-    if(!this.search){
-    this.fetchData()
-    }
+    this.fetchData();
   },
 
 };
@@ -453,66 +439,83 @@ fm_job_event_id=${this.currentJobEventId}&fm_job_action_event_id=${actionId}`
 .customTable {
   background-color: var(--lc-bg-light);
 }
-.customTable >>> tbody tr:nth-child(even) {
+
+.customTable>>>tbody tr:nth-child(even) {
   background-color: var(--lc-background-color);
 }
-.customTable >>> thead tr {
+
+.customTable>>>thead tr {
   border-bottom: 2px solid var(--lc-primary);
 }
-.customTable >>> thead tr th {
+
+.customTable>>>thead tr th {
   color: var(--lc-primary) !important;
   font-size: 0.875rem !important;
 }
+
 .container {
-    display: inline-block;
-  }
-.datepicker{
-  margin-top: 40px;
-  margin-right: 1000px;
+  display: inline-block;
 }
+
+.datepicker {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-top: 20px;
+  margin-right: 600px;
+}
+
 /* .datepicker > * {
     margin-right: 250px;
   } */
 
-.stepcontainer{
+.stepper-header {
+  background-color: var(--lc-text-light);
+  box-shadow: none;
+}
+
+.stepcontainer {
   display: flex;
-  justify-content: space-between;  
-  margin-top: 60px;
+  justify-content: space-between;
+  margin-top: 2vh;
   border: none;
   background-color: var(--lc-text-light);
 }
-.step1{
+
+.step1 {
   width: 200px;
   height: 50px;
   background-color: #4673ae;
-  clip-path:  polygon(0% 0%, 88% 0%, 100% 50%, 88% 100%, 0% 100%);
+  clip-path: polygon(0% 0%, 88% 0%, 100% 50%, 88% 100%, 0% 100%);
   padding: 0.5rem 1rem 0.5rem 1rem;
   text-align: center;
   margin-right: 30px;
   font-size: large;
-  color : var(--lc-text-light) !important;
+  color: var(--lc-text-light) !important;
 }
 
-.step2{
+.step2 {
   margin-right: 30px;
   width: 200px;
   height: 50px;
   background-color: #4673ae;
-  clip-path:  polygon(0% 0%, 88% 0%, 100% 50%, 88% 100%, 0% 100%);
+  clip-path: polygon(0% 0%, 88% 0%, 100% 50%, 88% 100%, 0% 100%);
   padding: 0.5rem 1rem 0.5rem 1rem;
   text-align: center;
   font-size: large;
 
 }
+
 .filter-icon {
   margin-left: 5px;
   color: var(--lc-primary);
 }
+
 .filter-box {
   margin-top: 10px;
 }
-.applyButton{
-margin-left: 10px;
-}
 
+.applyButton {
+  margin-left: 10px;
+}
 </style>
