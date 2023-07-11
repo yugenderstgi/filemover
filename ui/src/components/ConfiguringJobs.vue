@@ -299,9 +299,9 @@ export default {
           console.error(error);
         });
     },
-    getActionParams(actionId) {
+    async getActionParams(actionId) {
       // fetches action params for particular action
-      axios
+      await axios
         .get(
           `http://127.0.0.1:8000/fmaction/?fm_job_id=${this.currentJobId}&fm_action_id=${actionId}`
         )
@@ -317,7 +317,7 @@ export default {
       this.currentActionId = actionId;
     },
     handleSave() {
-      const url = `http://127.0.0.1:8000/fmaction/${this.currentActionId}/update_action_params/`;
+      const url = `http://127.0.0.1:8000/fmaction/${this.currentActionId}/action_params/`;
       const data = {
         action_parms: {
           params: {

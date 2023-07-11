@@ -46,7 +46,7 @@
                       <input type="checkbox" :value="option.value" v-model="selectedFilters">
                       {{ option.label }}
                     </label>
-                    <button class="applyButton" @click="applyFilters('jobEvents')">Apply</button>
+                    <button class="applyButton" @click="fetchData">Apply</button>
                   </div>
                 </div>
               </template>
@@ -69,7 +69,7 @@
                       <input type="checkbox" :value="option.value" v-model="selectedFilters">
                       {{ option.label }}
                     </label>
-                    <button class="applyButton" @click="applyFilters('jobActions')">Apply</button>
+                    <button class="applyButton" @click="applyFiltersJobActions">Apply</button>
                   </div>
                 </div>
               </template>
@@ -86,7 +86,6 @@
           </v-stepper-content>
         </v-stepper-items>
       </v-stepper>
-
 
       <v-overlay :value="openRightPanel" color="var(--lc-primary)" opacity="0.75">
         <RightPanel :open-right-panel="openRightPanel" :action-params="actionParams" @close="() => {
@@ -123,7 +122,7 @@ export default {
       search: '',
       pagination: {
         page: 1,
-        itemsPerPage: 5,
+        itemsPerPage: 4,
         totalItems: 0
       },
       openRightPanel: false,
@@ -256,7 +255,7 @@ export default {
       handler(newVal) {
 
         if (newVal.start && newVal.end) {
-          this.updateDateRange();
+          this.fetchData();
         }
         else if (!newVal.start && !newVal.end) {
           this.fetchData();
@@ -299,49 +298,104 @@ export default {
       return date
 
     },
-    updateDateRange() {
-      if (this.selectedDates) {
+    // updateDateRange() {
+    //   if (this.selectedDates) {
+    //     //start date modification
+    //     console.log("updateDateRange method")
+    //     let startDate = this.selectedDates.start;
+    //     startDate = this.modifyDate(startDate)
+    //     let endDate = this.selectedDates.end;
+    //     endDate = this.modifyDate(endDate)
+    //     let url = `http://127.0.0.1:8000/fmjobevent/?start_tms=${startDate}&end_tms=${endDate}`;
+    //     this.callApiWithDate(url);
+    //   }
+    // },
+    fetchData() {
+      if (!this.selectedFilters.length && !this.selectedDates.start && !this.selectedDates.end) {
+        axios
+          .get(`http://127.0.0.1:8000/fmjobevent/?page=${this.pagination.page}&page_size=${this.pagination.itemsPerPage}`)
+          .then((response) => {
+            this.items = response.data.results;
+            console.log(response.data)
+            this.pagination.totalItems = response.data.count;
+            console.log(this.items);
+          })
+          .catch((error) => {
+            console.error(error);
+          });
+        console.log("Fetch Data API - ENDED")
+      }
+      else if (this.selectedFilters.length && !this.selectedDates.start && !this.selectedDates.end) {
+        console.log(this.selectedFilters)
+        axios
+          .get(`http://127.0.0.1:8000/fmjobevent/?status=${this.selectedFilters}&page=${this.pagination.page}&page_size=${this.pagination.itemsPerPage}`)
+          .then((response) => {
+            this.items = response.data.results;
+            console.log(response.data)
+            this.pagination.totalItems = response.data.count;
+            console.log(this.items);
+          })
+          .catch((error) => {
+            console.error(error);
+          });
+        console.log("Fetch Data API - ENDED")
+      }
+      else if (this.selectedDates.start && this.selectedDates.end && !this.selectedFilters.length) {
         //start date modification
+        console.log("updateDateRange method")
+        let startDate = this.selectedDates.start;
+        startDate = this.modifyDate(startDate);
+        let endDate = this.selectedDates.end;
+        endDate = this.modifyDate(endDate);
+        axios
+          .get(`http://127.0.0.1:8000/fmjobevent/?start_tms=${startDate}&end_tms=${endDate}&page=${this.pagination.page}&page_size=${this.pagination.itemsPerPage}`)
+          .then((response) => {
+            this.items = response.data.results;
+            console.log(response.data)
+            this.pagination.totalItems = response.data.count;
+            console.log(this.items);
+          })
+          .catch((error) => {
+            console.error(error);
+          });
+        console.log("Fetch Data API - ENDED")
+      }
+      else if (this.selectedDates.start && this.selectedDates.end && this.selectedFilters) {
         console.log("updateDateRange method")
         let startDate = this.selectedDates.start;
         startDate = this.modifyDate(startDate)
         let endDate = this.selectedDates.end;
-        endDate = this.modifyDate(endDate)
-        let url = `http://127.0.0.1:8000/fmjobevent/?start_tms=${startDate}&end_tms=${endDate}`;
-        this.callApiWithDate(url);
-
+        endDate = this.modifyDate(endDate);
+        axios
+          .get(`http://127.0.0.1:8000/fmjobevent/?status=${this.selectedFilters}&start_tms=${startDate}&end_tms=${endDate}&page=${this.pagination.page}&page_size=${this.pagination.itemsPerPage}`)
+          .then((response) => {
+            this.items = response.data.results;
+            console.log(response.data)
+            this.pagination.totalItems = response.data.count;
+            console.log(this.items);
+          })
+          .catch((error) => {
+            console.error(error);
+          });
+        console.log("Fetch Data API - ENDED")
       }
-    },
-    fetchData() {
-      axios
-        .get(`http://127.0.0.1:8000/fmjobevent/?page=${this.pagination.page}`)
-        .then((response) => {
-          this.items = response.data.results;
-          console.log(response.data)
-          this.pagination.totalItems = response.data.count;
-          console.log(this.items);
-        })
-        .catch((error) => {
-          console.error(error);
-        });
-      console.log("Fetch Data API - ENDED")
     }
     ,
-    async callApiWithDate(url) {
-      console.log("callApiWithDate API - STARTED")
-      await axios(url)
-        .then((response) => {
-          this.items = response.data.results;
-          console.log(this.item);
-        })
-        .catch((error) => {
-          console.error(error);
-        });
-      console.log("callApiWithDate API - ENDED")
-    },
-    async searchByJobName(url) {
+    // callApiWithDate(url) {
+    //   console.log("callApiWithDate API - STARTED")
+    //   axios(url)
+    //     .then((response) => {
+    //       this.items = response.data.results;
+    //       console.log(this.item);
+    //     })
+    //     .catch((error) => {
+    //       console.error(error);
+    //     });
+    //   console.log("callApiWithDate API - ENDED")
+    // },
+    searchByJobName(url) {
       console.log("searchByJobName API - STARTED")
-      await axios(url)
+      axios(url)
         .then((response) => {
           this.items = response.data.results;
           // console.log("Response Data : ",this.items);
@@ -353,13 +407,13 @@ export default {
     },
 
 
-    async getActions(jobEventId, jobname) {
+    getActions(jobEventId, jobname) {
       this.currentJobName = jobname;
       this.currentStep = 2;
       this.showActionsBreadcrumb = true;
       this.showJobTable = false;
       this.currentJobEventId = jobEventId;
-      await axios(
+      axios(
         `http://127.0.0.1:8000/fmjobactionevent/?fm_job_event_id=${jobEventId}`
       ).then((res) => {
         console.log(res.data)
@@ -390,21 +444,22 @@ export default {
       this.showJobTable = !this.showJobTable
       console.log("Job table value : ", this.showJobTable)
     },
-    applyFilters(source) {
+    applyFiltersJobActions() {
       console.log('Selected Filters:', this.selectedFilters);
-      if (source == 'jobEvents') {
-        const url = `http://127.0.0.1:8000/fmjobevent/?status=${this.selectedFilters}`
-        this.searchEventsByStatus(url);
-      }
-      else if (source == 'jobActions') {
-        const url = `http://127.0.0.1:8000/fmjobactionevent/?fm_job_event_id=${this.currentJobEventId}&status=${this.selectedFilters}`
-        console.log("Status Type URL is : ", url)
-        this.searchActionsByStatus(url);
-      }
+      // if (source == 'jobEvents') {
+      //   const url = `http://127.0.0.1:8000/fmjobevent/?status=${this.selectedFilters}`
+      //   this.searchEventsByStatus(url);
+      // }
+      // else if (source == 'jobActions') {
+      const url = `http://127.0.0.1:8000/fmjobactionevent/?fm_job_event_id=${this.currentJobEventId}&status=${this.selectedFilters}`
+      console.log("Status Type URL is : ", url)
+      this.searchActionsByStatus(url);
+      // }
+
     },
-    async searchActionsByStatus(url) {
+    searchActionsByStatus(url) {
       console.log("searchActionsByStatus API - STARTED")
-      await axios(url)
+      axios(url)
         .then((response) => {
           // this.$attrs.fmJobs = response.data;
           this.jobDescItems = response.data.results;
@@ -415,19 +470,19 @@ export default {
         });
       console.log("searchActionsByStatus API - ENDED")
     },
-    async searchEventsByStatus(url) {
-      console.log("searchEventsByStatus API - STARTED")
-      await axios(url)
-        .then((response) => {
-          // this.$attrs.fmJobs = response.data;
-          this.items = response.data.results;
-          // console.log("Response Data : ",this.items);
-        })
-        .catch((error) => {
-          console.error(error);
-        });
-      console.log("searchEventsByStatus API - ENDED")
-    }
+    // searchEventsByStatus(url) {
+    //   console.log("searchEventsByStatus API - STARTED")
+    //   axios(url)
+    //     .then((response) => {
+    //       // this.$attrs.fmJobs = response.data;
+    //       this.items = response.data.results;
+    //       // console.log("Response Data : ",this.items);
+    //     })
+    //     .catch((error) => {
+    //       console.error(error);
+    //     });
+    //   console.log("searchEventsByStatus API - ENDED")
+    // }
   },
   created() {
     this.fetchData();
