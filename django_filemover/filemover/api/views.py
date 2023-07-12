@@ -1,8 +1,11 @@
+from datetime import date
+
 from django.db import connections
+from django.db.models import Q
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets
-from rest_framework.pagination import PageNumberPagination
 from rest_framework.decorators import action
+from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 
 from ..models import (
@@ -114,13 +117,20 @@ class FilemoverActionViewSet(viewsets.ReadOnlyModelViewSet):
         queryset (django.db.models.QuerySet): The queryset of FilemoverActions instances, ordered by descending dml_ts.
     """
 
-    queryset = FilemoverAction.objects.all().order_by("-dml_ts")
     serializer_class = FilemoverActionSerializer
     filter_backends = [
         DjangoFilterBackend
     ]  # this line to specify the filter backend and the DjangoFilterBackend is added to the filter_backends list
     filterset_class = FilemoverActionFilter
     pagination_class = CustomPagination
+
+    def get_queryset(self):
+        fm_job_id = self.request.query_params.get("fm_job_id")
+        if fm_job_id:
+            queryset = FilemoverAction.objects.filter(fm_job_id=fm_job_id).order_by("-dml_ts")
+        else:
+            queryset = FilemoverAction.objects.none()
+        return queryset
 
     @action(detail=True, methods=["PUT", "PATCH"])
     def action_params(self, request, pk=None):
@@ -161,13 +171,29 @@ class FilemoverJobEventViewSet(viewsets.ReadOnlyModelViewSet):
         queryset (django.db.models.QuerySet): The queryset of FilemoverJobEvent instances, ordered by descending start_tms.
     """
 
-    queryset = FilemoverJobEvent.objects.all().order_by("-start_tms")
+    # queryset = FilemoverJobEvent.objects.filter(status='PASS').order_by("-start_tms")
     serializer_class = FilemoverJobEventSerializer
     filter_backends = [
         DjangoFilterBackend
     ]  # this line to specify the filter backend and the DjangoFilterBackend is added to the filter_backends list
     filterset_class = FilemoverJobEventFilter
     pagination_class = CustomPagination
+
+    def get_queryset(self):
+        start_tms = self.request.query_params.get("start_tms")
+        end_tms = self.request.query_params.get("end_tms")
+
+        if start_tms and end_tms:
+            queryset = FilemoverJobEvent.objects.filter(
+                Q(start_tms__date__gte=start_tms) & Q(end_tms__date__lte=end_tms)
+            ).order_by("-start_tms")
+
+        else:
+            queryset = FilemoverJobEvent.objects.filter(
+                Q(start_tms__date__gte=date.today()) & Q(end_tms__date__lte=date.today())
+            ).order_by("-start_tms")
+
+        return queryset
 
 
 class FilemoverJobActionEventViewSet(viewsets.ReadOnlyModelViewSet):
@@ -177,10 +203,18 @@ class FilemoverJobActionEventViewSet(viewsets.ReadOnlyModelViewSet):
         queryset (django.db.models.QuerySet): The queryset of FilemoverJobActionEvent instances, ordered by descending start_tms.
     """
 
-    queryset = FilemoverJobActionEvent.objects.all().order_by("-start_tms")
+    # queryset = FilemoverJobActionEvent.objects.all().order_by("-start_tms")
     serializer_class = FilemoverJobActionEventSerializer
     filter_backends = [
         DjangoFilterBackend
     ]  # this line to specify the filter backend and the DjangoFilterBackend is added to the filter_backends list
     filterset_class = FilemoverJobActionEventFilter
     pagination_class = CustomPagination
+
+    def get_queryset(self):
+        fm_job_event_id = self.request.query_params.get("fm_job_event_id")
+        if fm_job_event_id:
+            queryset = FilemoverJobActionEvent.objects.filter(fm_job_event_id=fm_job_event_id).order_by("-start_tms")
+        else:
+            queryset = FilemoverJobActionEvent.objects.none()
+        return queryset

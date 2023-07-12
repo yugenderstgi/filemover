@@ -28,7 +28,6 @@ class FilemoverActionFilter(filters.FilterSet):
     This class is used to  filter based on  Job id , Fm action id , Transform name.
     """
 
-    fm_job_id = filters.NumberFilter(field_name="fm_job", lookup_expr="exact")
     fm_action_id = filters.NumberFilter(field_name="id", lookup_expr="exact")
     transform_name = filters.CharFilter(method="filter_by_transform_name")
 
@@ -38,7 +37,7 @@ class FilemoverActionFilter(filters.FilterSet):
 
     class Meta:
         model = FilemoverAction
-        fields = ["fm_job", "id", "action_type"]  # This fields related to Model Class
+        fields = ["id", "action_type"]  # This fields related to Model Class
 
 
 class FilemoverJobEventFilter(filters.FilterSet):
@@ -48,12 +47,10 @@ class FilemoverJobEventFilter(filters.FilterSet):
 
     job_name = filters.CharFilter(field_name="fm_job__name", lookup_expr="icontains")
     status = filters.CharFilter(field_name="status", lookup_expr="icontains")
-    start_tms = filters.DateFilter(field_name="start_tms", lookup_expr="date__gte")
-    end_tms = filters.DateFilter(field_name="end_tms", lookup_expr="date__lte")
 
     class Meta:
         model = FilemoverJobEvent
-        fields = ["status", "start_tms", "end_tms"]
+        fields = ["status"]  # , "start_tms", "end_tms"]
 
 
 class FilemoverJobActionEventFilter(filters.FilterSet):
@@ -61,7 +58,6 @@ class FilemoverJobActionEventFilter(filters.FilterSet):
     This class is used to  filter based on   job action event id ,Job Status , Transform name.
     """
 
-    fm_job_event_id = filters.NumberFilter(field_name="fm_job_event", lookup_expr="exact")
     fm_job_action_event_id = filters.NumberFilter(field_name="id", lookup_expr="exact")
     status = filters.CharFilter(field_name="status", lookup_expr="icontains")
     transform_name = filters.CharFilter(method="filter_by_transform_name")
@@ -72,7 +68,7 @@ class FilemoverJobActionEventFilter(filters.FilterSet):
 
     class Meta:
         model = FilemoverJobActionEvent
-        fields = ["fm_job_event", "id", "status"]  # This fields related to Model Class
+        fields = ["id", "status"]  # This fields related to Model Class
 
 
 def transform_name_val(xmldata):
