@@ -317,7 +317,7 @@ export default {
       this.currentActionId = actionId;
     },
     handleSave() {
-      const url = `http://127.0.0.1:8000/fmaction/${this.currentActionId}/action_params/`;
+      const url = `http://127.0.0.1:8000/fmaction/${this.currentActionId}/action_params/?fm_job_id=${this.currentJobId}`;
       const data = {
         action_parms: {
           params: {

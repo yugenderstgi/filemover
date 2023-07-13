@@ -116,7 +116,7 @@ class FilemoverActionViewSet(viewsets.ReadOnlyModelViewSet):
     Attributes:
         queryset (django.db.models.QuerySet): The queryset of FilemoverActions instances, ordered by descending dml_ts.
     """
-
+   
     serializer_class = FilemoverActionSerializer
     filter_backends = [
         DjangoFilterBackend
@@ -125,6 +125,7 @@ class FilemoverActionViewSet(viewsets.ReadOnlyModelViewSet):
     pagination_class = CustomPagination
 
     def get_queryset(self):
+        
         fm_job_id = self.request.query_params.get("fm_job_id")
         if fm_job_id:
             queryset = FilemoverAction.objects.filter(fm_job_id=fm_job_id).order_by("-dml_ts")
@@ -137,10 +138,12 @@ class FilemoverActionViewSet(viewsets.ReadOnlyModelViewSet):
         """
         This method is called to updated Action Params Values.
         """
+        
         fm_action = self.get_object()
         fm_action_data = FilemoverActionSerializer(fm_action).data
 
         params = request.data.get("action_parms", {}).get("params", {})
+       
         action_params = fm_action_data.get("action_parms")
         action_parms_xml = ""
         if fm_action.action_type == "Unzip" and params:
@@ -171,7 +174,7 @@ class FilemoverJobEventViewSet(viewsets.ReadOnlyModelViewSet):
         queryset (django.db.models.QuerySet): The queryset of FilemoverJobEvent instances, ordered by descending start_tms.
     """
 
-    # queryset = FilemoverJobEvent.objects.filter(status='PASS').order_by("-start_tms")
+    # queryset = FilemoverJobEvent.objects.all().order_by("-start_tms")
     serializer_class = FilemoverJobEventSerializer
     filter_backends = [
         DjangoFilterBackend
